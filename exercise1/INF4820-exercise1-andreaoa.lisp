@@ -1,5 +1,6 @@
 ;;;;OBLIGATORY EXERCISE 1, INF4820, FALL 2015
 ;;;;Written my Andreas Oven Aalsaunet, andreaoa@ifi.uio.no
+;;;;Lisp environment used: SBCL
 
 ;;; 1. List processing
 (defparameter *list* '(apple orange pear lemon))
@@ -79,6 +80,6 @@
 (defun task3B ()
   (let* ((keys '(:a :b :c))
 	 (values '(0 1 2))
-	 (pairs ????))
-    ????
+	 (pairs (pairlis keys values)))
+	 (setf pairs (acons :b 42 pairs))
     (rest (assoc :b pairs))))
