@@ -145,7 +145,8 @@
 ;;     append (tokenize line)))
 
 (defparameter *corpus* (read-corpus))
-(defparameter *hashtable* (make-corpus-hashtable))
+(defparameter *hashtable* (make-hash-table :test #'equal))
+(defparameter *number-of-unique-words* 0)
 
 (defun tokenize (string)
   (loop
@@ -178,10 +179,17 @@
 
 ;; D.
 (defun make-corpus-hashtable ()
-(let ((corpus-hashtable (make-hash-table)))
-    (dotimes (i (length *corpus*))
-      (if (gethash (nth i *corpus*) corpus-hashtable)
-	  (incf (gethash (nth i *corpus*) corpus-hashtable))
-	  (incf (gethash (nth i *corpus*) corpus-hashtable 0))))
-    '(corpus-hashtable)))
+  (dotimes (i (length *corpus*))
+    (if (gethash (nth i *corpus*) *hashtable*)
+	(incf (gethash (nth i *corpus*) *hashtable*))
+	(progn
+	  (setf (gethash (nth i *corpus*) *hashtable*) 1)
+	  (setf *number-of-unique-words* (+ *number-of-unique-words* 1))))))
 
+;; E.
+;; There are 6311 unique words in in *corpus*. This is stored in the variable
+;; *number-of-unique-words, which is incremented by 1 each time we add a new key in the
+;; make-corpus-hashtable-function. If we didnt do this, we could have iterated through
+;; the table once more in the same fashion as when we create the hashtable, but I saw this
+;; as an oppertunity to also test out "progn", which allows for multiple statements in an
+;; If-statement-branch.
