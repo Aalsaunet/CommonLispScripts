@@ -144,7 +144,6 @@
 ;;     while line
 ;;     append (tokenize line)))
 
-(defparameter *corpus* (read-corpus))
 (defparameter *hashtable* (make-hash-table :test #'equal))
 (defparameter *number-of-unique-words* 0)
 
@@ -162,6 +161,8 @@
        for line = (read-line file-stream nil)
        while line
        append (tokenize line))))
+
+(defparameter *corpus* (read-corpus))
 
 ;; B.
 ;; There are 23132 tokens in our corpus
@@ -193,3 +194,8 @@
 ;; the table once more in the same fashion as when we create the hashtable, but I saw this
 ;; as an oppertunity to also test out "progn", which allows for multiple statements in an
 ;; If-statement-branch.
+
+;; We could also have seen the number of keys (i.e the number of unique words) by just typing
+;; *hashtable* (the name of the variable) in the REPL. The output of that command gives us
+;; something like "#<HASH-TABLE :TEST EQUAL :COUNT 6311 {100520F3F3}>", where we can see
+;; ":COUNT 6311" (i.e that the count indeed is 6311 :D ).
