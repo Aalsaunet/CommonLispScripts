@@ -83,3 +83,42 @@
 	 (pairs (pairlis keys values)))
 	 (setf pairs (acons :b 42 pairs))
     (rest (assoc :b pairs))))
+
+;; C.
+(defun task3C ()
+  (let ((foo (make-hash-table)))
+    (setf (gethash 'meaning foo) 41)
+    (incf (gethash 'meaning foo))
+    (gethash 'meaning foo)))
+
+;; D.
+(defun task3D ()
+  (let ((foo (make-array 5)))
+    (setf (aref foo 2) 42)
+    (aref foo 2)))
+  
+;;; 4. Recursion and iteration
+;; A.
+
+(defun count-member-recursively (symbol list)
+  (if (eql list nil)
+      0
+      (if (eql symbol (first list))
+	  (+ 1 (count-member symbol (rest list)))
+	  (+ 0 (count-member symbol (rest list))))))
+;; B.
+(defun count-member-iteratively (symbol list)
+  (loop
+     for i in list
+     when (eql symbol i)
+       count i))
+       
+
+(defun count-member-dotimes (symbol list)
+  (let ((x 0))
+    (dotimes (y (length list))
+      (when (eql symbol (nth y list))
+	(setf x (+ x 1))))
+    x))
+  
+
