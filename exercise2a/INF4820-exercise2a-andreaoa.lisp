@@ -13,6 +13,14 @@
 ;; relations to other words.
 
 ;;; Task 2A
+
+(defstruct (vs)
+  (matrix (make-hash-table :test #'equal))
+  similarity-fn)
+
+(defparameter vs-instance (make-vs)) 
+
+;;; Task 2B
 (defparameter *stop-list*
   '("a" "about" "also" "an" "and" "any" "are" "as" "at" "be" "been"
     "but" "by" "can" "could" "do" "for" "from" "had" "has" "have"
@@ -22,26 +30,33 @@
     "those" "to" "was" "we" "were" "what" "when" "where" "which"
     "who" "will" "with" "would" "you"))
 
-(defstruct (vs)
-  (matrix (make-hash-table :test #'equal))
-  similarity-fn)
-
-(defparameter vs-instance (make-vs)) 
+(defun normalize-token (word)
+  (setf word (string-downcase word))
+  (string-trim '(#\Space #\Tab #\Newline #\. #\, #\; #\: #\- #\_ #\? #\! #\') word))
 
 (defun read-words-to-hash (words)
   (let ((file-stream (open words)))
     (loop
        for line = (read-line file-stream nil)
        while line
-       do (setf (gethash line (vs-matrix vs-instance)) (make-hash-table :test #'equal))))
+       do (setf (gethash (normalize-token line) (vs-matrix vs-instance))
+		(make-hash-table :test #'equal))))
   )
 
-(defun normalize-token (word)
+;; (defun read-corpus-to-hash (corpus)
 
-  )
+;;   )
 
 (defun read-corpus-to-vs (words)
   (read-words-to-hash words)
   )
 
-(defparameter space (read-corpus-to-vs "words.txt"))
+(defparameter *space* (read-corpus-to-vs "words.txt"))
+
+
+
+;;; Metoder for å skrive ut hashverdier
+;; (defun print-hash-entry (key value)
+;;     (format t "The value associated with the key ~S is ~S~%" key value))
+
+;; (maphash #'print-hash-entry (vs-matrix vs-instance))
