@@ -62,17 +62,9 @@
 ;;; 7a Add word(s) as keys in the 2nd level hash of that focusword and set their
 ;;;    value to 1.
 ;;; 7b OR if the word(s) is already a key in the 2nd level hash, increment the
-;;;    value of that hash by 1.
+;;;    value of that hash by 1.   
 
-(defun tokenize (string)
-  (loop
-     for start = 0 then (+ space 1)
-     for space = (position #\space string :start start)
-     for token = (subseq string start space)
-     unless (string= token "") collect token
-     until (not space)))   
-
-(defun scan-for-focusword (normalized-list)
+(defun corpus-to-hash (normalized-list)
   (dolist (word normalized-list)
     (if (gethash word (vs-matrix vs-instance))
 	(progn
@@ -89,10 +81,17 @@
       (setf currentWord (normalize-token word))
       (if (not (member currentWord *stop-list* :test #'equal))
 	  (push currentWord normalized-list)))
-    (scan-for-focusword normalized-list)))
+    (corpus-to-hash normalized-list)))
 
+(defun tokenize (string)
+  (loop
+     for start = 0 then (+ space 1)
+     for space = (position #\space string :start start)
+     for token = (subseq string start space)
+     unless (string= token "") collect token
+     until (not space)))
 
-(defun read-corpus-to-hash (corpus)
+(defun read-from-corpus (corpus)
   (let ((file-stream (open corpus)))
     (loop
        for line = (read-line file-stream nil)
@@ -101,7 +100,7 @@
     
 (defun read-corpus-to-vs (focuswords corpus)
   (read-words-to-hash focuswords)
-  (read-corpus-to-hash corpus))
+  (read-from-corpus corpus))
 
 (defparameter *space* (read-corpus-to-vs "words.txt" "brown2.txt"))
 
