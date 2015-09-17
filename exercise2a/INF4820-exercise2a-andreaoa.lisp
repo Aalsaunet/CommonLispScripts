@@ -100,9 +100,26 @@
     
 (defun read-corpus-to-vs (focuswords corpus)
   (read-words-to-hash focuswords)
-  (read-from-corpus corpus))
+  (read-from-corpus corpus)
+  (vs-matrix vs-instance))
 
 (defparameter *space* (read-corpus-to-vs "words.txt" "brown2.txt"))
+
+;;; Task 2C
+(defun get-feature-vector (vectorspace word)
+  (gethash word vectorspace))
+
+;;; Task 2D
+(defun print-features (vectorspace word limit)
+  (let ((key-value-list '()))
+    (maphash #'(lambda (key value)
+		 (push (list key value) key-value-list))
+	     (get-feature-vector vectorspace word))
+    (setf key-value-list (sort key-value-list #'> :key #'cadr))
+    (dotimes (i limit)
+      (let ((pair (pop key-value-list)))
+	(format t "The feature ~S appears ~S times ~C" (car pair) (cadr pair) #\newline)))))
+    
 
 
 
@@ -111,4 +128,14 @@
   (format t "The value associated with the key ~S is ~S~%" key value))
 
 ;; (maphash #'print-hash-entry (vs-matrix vs-instance))
-;; (maphash #'print-hash-entry (gethash "london" (vs-matrix vs-instance)))
+;;(maphash #'print-hash-entry (gethash "university" (vs-matrix vs-instance)))
+
+
+;; (defun test2 (test-liste)
+;;   (dolist (i test-liste)
+;;     (if (equal i "to")
+;; 	(progn
+;; 	  (setf test-liste (remove "fire" test-liste :test #'equal))
+;; 	  (dolist (j test-liste)
+;; 	    (print j)
+;; 	    (print test-liste))))))
