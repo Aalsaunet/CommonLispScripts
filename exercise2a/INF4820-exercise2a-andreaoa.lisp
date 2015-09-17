@@ -133,6 +133,13 @@
      (sqrt sum)))	     
 
 ;;; Task 3B
+(defun length-normalize-vs (vs-structure)
+  (maphash (lambda (key value)
+	     (maphash (lambda (key2 value2)
+			(setf key2 (/ value2 (euclidean-length2
+					      (get-feature-vector vs-structure key2)))
+			) (get-feature-vector vs-structure key)))) vs-structure))
+  
 
 
 ;;; Method for printing out hash keys and values for the 1st level hash
