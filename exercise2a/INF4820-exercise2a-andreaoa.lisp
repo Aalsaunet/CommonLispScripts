@@ -17,7 +17,7 @@
 
 (defstruct (vs)
   (matrix (make-hash-table :test #'equal))
-  (similarity-fn #'dot-product))
+  (similarity-fn))
 
 (defparameter vs-instance (make-vs)) 
 
@@ -133,12 +133,21 @@
      (sqrt sum)))	     
 
 ;;; Task 3B
-(defun length-normalize-vs (vs-structure)
+(defun length-normalize-vs (vs-struct)
   (maphash (lambda (key value)
-	     (maphash (lambda (key2 value2)
-			(setf key2 (/ value2 (euclidean-length2
-					      (get-feature-vector vs-structure key2)))
-			) (get-feature-vector vs-structure key)))) vs-structure))
+	     (maphash (lambda (k v)
+			(setf (gethash k (gethash key vs-struct))
+				       (/ v (euclidean-length2  
+					     (get-feature-vector vs-struct key)))))
+		      value)) vs-struct)) 
+
+
+;; (defun length-normalize-vs (vs-structure)
+;;   (maphash (lambda (key value)
+;; 	     (maphash (lambda (key2 value2)
+;; 			(setf key2 (/ value2 (euclidean-length2
+;; 					      (get-feature-vector vs-structure key2)))
+;; 			) (get-feature-vector vs-structure key)))) vs-structure))
   
 
 
@@ -146,7 +155,7 @@
 (defun print-hash-entry (key value)
   (format t "The value associated with the key ~S is ~S~%" key value))
 
-;; (maphash #'print-hash-entry (vs-matrix vs-instance))
+(maphash #'print-hash-entry *space*)
 ;;(maphash #'print-hash-entry (gethash "university" (vs-matrix vs-instance)))
 
 
