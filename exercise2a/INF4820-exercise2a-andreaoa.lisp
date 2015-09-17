@@ -29,7 +29,7 @@
     "may" "most" "new" "no" "not" "of" "on" "or" "she" "some" "such"
     "than" "that" "the" "their" "them" "there" "these" "they" "this"
     "those" "to" "was" "we" "were" "what" "when" "where" "which"
-    "who" "will" "with" "would" "you" "setning"))
+    "who" "will" "with" "would" "you"))
 
 (defun normalize-token (word)
   (string-trim '(#\Space #\Tab #\Newline #\. #\, #\; #\: #\- #\_ #\? #\! #\' #\" #\( #\) )
@@ -72,17 +72,25 @@
      unless (string= token "") collect token
      until (not space)))   
 
+(defun scan-for-focusword (normalized-list)
+  (dolist (word normalized-list)
+    (if (gethash word (vs-matrix vs-instance))
+	(progn
+	  (setf normalized-list (remove word normalized-list :test #'equal))
+	  (dolist (remaining-word normalized-list)
+	    (if (gethash remaining-word (gethash word (vs-matrix vs-instance)))
+		(incf (gethash remaining-word (gethash word (vs-matrix vs-instance))))
+		(setf (gethash remaining-word (gethash word (vs-matrix vs-instance))) 1)))))))
+
 (defun filter-words (wordlist)
   (let ((normalized-list '())
 	(currentWord ""))
     (dolist (word wordlist)
       (setf currentWord (normalize-token word))
-      (if (not (member currentWord *stop-list*))
+      (if (not (member currentWord *stop-list* :test #'equal))
 	  (push currentWord normalized-list)))
-    (print normalized-list)))
-      ;(push (normalize-token word) normalized-list)
-      ;(setf normalized-list (filter-stop-words normalized-list)))
-      ;(print normalized-list)))
+    (scan-for-focusword normalized-list)))
+
 
 (defun read-corpus-to-hash (corpus)
   (let ((file-stream (open corpus)))
