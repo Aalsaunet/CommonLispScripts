@@ -103,12 +103,13 @@
   (read-words-to-hash focuswords)
   (read-corpus-to-hash corpus))
 
-(defparameter *space* (read-corpus-to-vs "words.txt" "test.txt"))
+(defparameter *space* (read-corpus-to-vs "words.txt" "brown2.txt"))
 
 
 
 ;;; Method for printing out hash keys and values for the 1st level hash
-;; (defun print-hash-entry (key value)
-;;     (format t "The value associated with the key ~S is ~S~%" key value))
+(defun print-hash-entry (key value)
+  (format t "The value associated with the key ~S is ~S~%" key value))
 
 ;; (maphash #'print-hash-entry (vs-matrix vs-instance))
+;; (maphash #'print-hash-entry (gethash "london" (vs-matrix vs-instance)))
