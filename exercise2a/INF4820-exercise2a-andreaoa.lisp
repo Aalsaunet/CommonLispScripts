@@ -23,7 +23,7 @@
 
 ;;; Task 2B
 (defparameter *stop-list*
-  '("a" "about" "also" "an" "and" "any" "are" "as" "at" "be" "been"
+  '("" "a" "about" "also" "an" "and" "any" "are" "as" "at" "be" "been"
     "but" "by" "can" "could" "do" "for" "from" "had" "has" "have"
     "he" "her" "him" "his" "how" "i" "if" "in" "is" "it" "its" "la"
     "may" "most" "new" "no" "not" "of" "on" "or" "she" "some" "such"
@@ -33,8 +33,7 @@
 
 (defun normalize-token (word)
   (string-trim '(#\Space #\Tab #\Newline #\. #\, #\; #\: #\- #\_ #\? #\! #\' #\" #\( #\) )
-	       (string-downcase word)))
-
+  	       (string-downcase word)))
 
 ;;; Method for reading in focuswords and making the 1st level hash
 ;;; 1. Read in line by line (lines should consist of only one word) until EOF
@@ -67,16 +66,14 @@
 (defun corpus-to-hash (normalized-list)
   (dolist (word normalized-list)
     (if (gethash word (vs-matrix vs-instance))
-	(progn
-	  (setf normalized-list (remove word normalized-list :test #'equal))
-	  (dolist (remaining-word normalized-list)
+	(dolist (remaining-word (remove word normalized-list :test #'equal :count 1))
 	    (if (gethash remaining-word (gethash word (vs-matrix vs-instance)))
 		(incf (gethash remaining-word (gethash word (vs-matrix vs-instance))))
-		(setf (gethash remaining-word (gethash word (vs-matrix vs-instance))) 1)))))))
+		(setf (gethash remaining-word (gethash word (vs-matrix vs-instance))) 1))))))
 
 (defun filter-words (wordlist)
   (let ((normalized-list '())
-	(currentWord ""))
+	(currentWord nil))
     (dolist (word wordlist)
       (setf currentWord (normalize-token word))
       (if (not (member currentWord *stop-list* :test #'equal))
