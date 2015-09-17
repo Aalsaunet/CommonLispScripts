@@ -1,5 +1,6 @@
 ;;;; Assignment 2a in INF4820, Autumn 2015
-;;;; Andreas Oven Aalsaunet, andreaoa@ifi.uio.no
+;;;; Written by Andreas Oven Aalsaunet, andreaoa@ifi.uio.no
+;;;; Lisp environment used: SBCL
 
 ;;; Task 1A.
 ;; There are several ways of defining context of words in  addition to the bag-of-words approuch
@@ -30,9 +31,9 @@
     "those" "to" "was" "we" "were" "what" "when" "where" "which"
     "who" "will" "with" "would" "you"))
 
-(defun normalize-token (focusword)
+(defun normalize-token (word)
   (string-trim '(#\Space #\Tab #\Newline #\. #\, #\; #\: #\- #\_ #\? #\! #\' #\" #\( #\) )
-	       (string-downcase focusword)))
+	       (string-downcase word)))
 
 
 ;;; Method for reading in focuswords and making the 1st level hash
@@ -63,15 +64,33 @@
 ;;; 7b OR if the word(s) is already a key in the 2nd level hash, increment the
 ;;;    value of that hash by 1.
 
-;; (defun read-corpus-to-hash (corpus)
+(defun tokenize (string)
+  (loop
+     for start = 0 then (+ space 1)
+     for space = (position #\space string :start start)
+     for token = (subseq string start space)
+     unless (string= token "") collect token
+     until (not space)))   
 
-;;   )
+(defun filter-words (wordlist)
+  (let ((normalized-list '()))
+    (dolist (word wordlist)
+      (push (normalize-token word) normalized-list)
+      ())
+    (print normalized-list)))
 
-(defun read-corpus-to-vs (focuswords)
+(defun read-corpus-to-hash (corpus)
+  (let ((file-stream (open corpus)))
+    (loop
+       for line = (read-line file-stream nil)
+       while line
+       do (filter-words (tokenize line)))))
+    
+(defun read-corpus-to-vs (focuswords corpus)
   (read-words-to-hash focuswords)
-  )
+  (read-corpus-to-hash corpus))
 
-(defparameter *space* (read-corpus-to-vs "words.txt"))
+(defparameter *space* (read-corpus-to-vs "words.txt" "test.txt"))
 
 
 
