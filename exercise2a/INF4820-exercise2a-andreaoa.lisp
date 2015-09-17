@@ -30,12 +30,18 @@
     "those" "to" "was" "we" "were" "what" "when" "where" "which"
     "who" "will" "with" "would" "you"))
 
-(defun normalize-token (word)
-  (setf word (string-downcase word))
-  (string-trim '(#\Space #\Tab #\Newline #\. #\, #\; #\: #\- #\_ #\? #\! #\') word))
+(defun normalize-token (focusword)
+  (string-trim '(#\Space #\Tab #\Newline #\. #\, #\; #\: #\- #\_ #\? #\! #\' #\" #\( #\) )
+	       (string-downcase focusword)))
 
-(defun read-words-to-hash (words)
-  (let ((file-stream (open words)))
+
+;;; Method for reading in focuswords and making the 1st level hash
+;;; 1. Read in line by line (lines should consist of only one word) until EOF
+;;; 2. Normalize the words (remove whitespaces, newlines etc )
+;;; 3. Make every focusword a key in the 1st level hash
+
+(defun read-words-to-hash (focuswords)
+  (let ((file-stream (open focuswords)))
     (loop
        for line = (read-line file-stream nil)
        while line
@@ -43,19 +49,33 @@
 		(make-hash-table :test #'equal))))
   )
 
+;;; Method for reading and matching words in corpus to focuswords
+;;; and making the 2nd level hashes
+;;; 1. Read in a sentence by sentence (sentence = words until ".") until EOF.
+;;; 2. Tokenize the sentence (split sentence into list of words)
+;;; 3. Normalize each word in the word list
+;;; 4. Remove words in the list that are present in the *stop-list*
+;;; 5. For each word left in the list: check if its a focusword (key in 1st level hash)
+;;; 6. If it is, remove that word from the list of words. No focus words: Next sentence.
+;;; 7. And do one of the following:
+;;; 7a Add word(s) as keys in the 2nd level hash of that focusword and set their
+;;;    value to 1.
+;;; 7b OR if the word(s) is already a key in the 2nd level hash, increment the
+;;;    value of that hash by 1.
+
 ;; (defun read-corpus-to-hash (corpus)
 
 ;;   )
 
-(defun read-corpus-to-vs (words)
-  (read-words-to-hash words)
+(defun read-corpus-to-vs (focuswords)
+  (read-words-to-hash focuswords)
   )
 
 (defparameter *space* (read-corpus-to-vs "words.txt"))
 
 
 
-;;; Metoder for å skrive ut hashverdier
+;;; Method for printing out hash keys and values for the 1st level hash
 ;; (defun print-hash-entry (key value)
 ;;     (format t "The value associated with the key ~S is ~S~%" key value))
 
