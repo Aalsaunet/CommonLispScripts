@@ -29,7 +29,7 @@
     "may" "most" "new" "no" "not" "of" "on" "or" "she" "some" "such"
     "than" "that" "the" "their" "them" "there" "these" "they" "this"
     "those" "to" "was" "we" "were" "what" "when" "where" "which"
-    "who" "will" "with" "would" "you"))
+    "who" "will" "with" "would" "you" "setning"))
 
 (defun normalize-token (word)
   (string-trim '(#\Space #\Tab #\Newline #\. #\, #\; #\: #\- #\_ #\? #\! #\' #\" #\( #\) )
@@ -73,11 +73,16 @@
      until (not space)))   
 
 (defun filter-words (wordlist)
-  (let ((normalized-list '()))
+  (let ((normalized-list '())
+	(currentWord ""))
     (dolist (word wordlist)
-      (push (normalize-token word) normalized-list)
-      ())
+      (setf currentWord (normalize-token word))
+      (if (not (member currentWord *stop-list*))
+	  (push currentWord normalized-list)))
     (print normalized-list)))
+      ;(push (normalize-token word) normalized-list)
+      ;(setf normalized-list (filter-stop-words normalized-list)))
+      ;(print normalized-list)))
 
 (defun read-corpus-to-hash (corpus)
   (let ((file-stream (open corpus)))
