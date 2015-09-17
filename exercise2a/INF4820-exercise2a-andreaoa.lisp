@@ -17,7 +17,7 @@
 
 (defstruct (vs)
   (matrix (make-hash-table :test #'equal))
-  similarity-fn)
+  (similarity-fn #'dot-product))
 
 (defparameter vs-instance (make-vs)) 
 
@@ -118,6 +118,21 @@
 	(format t "The feature ~S appears ~S times ~C" (car pair) (cadr pair) #\newline)))))
     
 
+;;; Task 3A
+ (defun euclidean-length (word)
+   (let ((sum 0))
+     (maphash (lambda (key value)
+		(setf sum (+ sum (* value value))))
+	      (get-feature-vector (vs-matrix vs-instance) word))
+     (sqrt sum)))
+	      
+ (defun euclidean-length2 (vector-space)
+   (let ((sum 0))
+     (maphash (lambda (key value)
+		(setf sum (+ sum (* value value)))) vector-space)
+     (sqrt sum)))	     
+
+;;; Task 3B
 
 
 ;;; Method for printing out hash keys and values for the 1st level hash
@@ -136,3 +151,8 @@
 ;; 	  (dolist (j test-liste)
 ;; 	    (print j)
 ;; 	    (print test-liste))))))
+
+
+;; (defun dot-product (hashtable-test)
+;;   (gethash "wine" hashtable-test))
+  
