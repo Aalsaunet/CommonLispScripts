@@ -119,45 +119,37 @@
     
 
 ;;; Task 3A
-
 (defun euclidean-length (vector-space)
    (let ((sum 0))
      (maphash (lambda (key value)
+		(declare (ignore key))
 		(setf sum (+ sum (* value value)))) vector-space)
      (sqrt sum)))
 
+;; Same method with the word as parameter (for ease of use)
 (defun euclidean-length-word (word)
    (let ((sum 0))
      (maphash (lambda (key value)
+		(declare (ignore key))
 		(setf sum (+ sum (* value value))))
 	      (get-feature-vector (vs-matrix vs-instance) word))
      (sqrt sum)))
 	 	     
 ;;; Task 3B
-;; Fungerende versjon på et nivå
-;; (defun length-normalize-vs (vs-struct)
-;;   (let ((vlength (euclidean-length vs-struct)))
-;;   (maphash (lambda (key value)
-;; 	     (format t "Key: ~S, Value: ~S. Dividing Value by: ~S"
-;; 		     key value length)
-;; 		(setf (gethash key vs-struct)
-;; 		      (/ value length))) vs-struct)))
-
-;; Beste så langt:
 (defun length-normalize-vs (vs-struct)
   (maphash (lambda (key value)
 	     (let ((vlength (euclidean-length (get-feature-vector vs-struct key))))
-	       (maphash (lambda (k v) (setf (gethash k value) (/ v vlength))) value)))
+	       (maphash (lambda (k v)
+			  (setf (gethash k value) (/ v vlength))) value)))
 	       vs-struct))
 
-;;; Method for printing out hash keys and values for the 1st level hash
+;;; Task 3C
+
+
+;;; Method for printing out hash keys and values
 (defun print-hash-entry (key value)
   (format t "The value associated with the key ~S is ~S~%" key value))
 
 ;(maphash #'print-hash-entry *space*)
 ;;(maphash #'print-hash-entry (gethash "university" (vs-matrix vs-instance)))
 
-
-;; (defun dot-product (hashtable-test)
-;;   (gethash "wine" hashtable-test))
-  
