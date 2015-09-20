@@ -134,45 +134,28 @@
      (sqrt sum)))
 	 	     
 ;;; Task 3B
-(defun length-normalize-vs (vs-struct)
-     (maphash (lambda (key value)
-		(setf (gethash key vs-struct)
-		      (/ value (euclidean-length vs-struct)))) vs-struct))
+;; Fungerende versjon på et nivå
+;; (defun length-normalize-vs (vs-struct)
+;;   (let ((vlength (euclidean-length vs-struct)))
+;;   (maphash (lambda (key value)
+;; 	     (format t "Key: ~S, Value: ~S. Dividing Value by: ~S"
+;; 		     key value length)
+;; 		(setf (gethash key vs-struct)
+;; 		      (/ value length))) vs-struct)))
 
 ;; Beste så langt:
-;; (defun length-normalize-vs (vs-struct)
-;;   (maphash (lambda (key value)
-;; 	     (maphash (lambda (k v)
-;; 			(setf (gethash k (gethash key vs-struct))
-;; 				       (/ v (euclidean-length2  
-;; 					     (get-feature-vector vs-struct key)))))
-;; 		      value)) vs-struct))
-
-;; (defun length-normalize-vs (vs-structure)
-;;   (maphash (lambda (key value)
-;; 	     (maphash (lambda (key2 value2)
-;; 			(setf key2 (/ value2 (euclidean-length2
-;; 					      (get-feature-vector vs-structure key2)))
-;; 			) (get-feature-vector vs-structure key)))) vs-structure))
-  
-
+(defun length-normalize-vs (vs-struct)
+  (maphash (lambda (key value)
+	     (let ((vlength (euclidean-length (get-feature-vector vs-struct key))))
+	       (maphash (lambda (k v) (setf (gethash k value) (/ v vlength))) value)))
+	       vs-struct))
 
 ;;; Method for printing out hash keys and values for the 1st level hash
 (defun print-hash-entry (key value)
   (format t "The value associated with the key ~S is ~S~%" key value))
 
-;;(maphash #'print-hash-entry *space*)
+;(maphash #'print-hash-entry *space*)
 ;;(maphash #'print-hash-entry (gethash "university" (vs-matrix vs-instance)))
-
-
-;; (defun test2 (test-liste)
-;;   (dolist (i test-liste)
-;;     (if (equal i "to")
-;; 	(progn
-;; 	  (setf test-liste (remove "fire" test-liste :test #'equal))
-;; 	  (dolist (j test-liste)
-;; 	    (print j)
-;; 	    (print test-liste))))))
 
 
 ;; (defun dot-product (hashtable-test)
