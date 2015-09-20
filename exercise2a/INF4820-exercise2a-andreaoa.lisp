@@ -144,6 +144,18 @@
 	       vs-struct))
 
 ;;; Task 3C
+(defun dot-product (vector1 vector2)
+  (let ((sum 0))
+    (maphash (lambda (key value)
+	       (if (gethash key vector2)
+		   (setf sum (+ sum (* value (gethash key vector2)))))) vector1)
+    (eval sum)))
+
+
+;;; Task 3D
+
+
+; (format t "The Cosine similarity between the words ~S and ~S is ~S)
 
 
 ;;; Method for printing out hash keys and values
