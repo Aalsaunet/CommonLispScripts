@@ -119,28 +119,34 @@
     
 
 ;;; Task 3A
- (defun euclidean-length (word)
+
+(defun euclidean-length (vector-space)
+   (let ((sum 0))
+     (maphash (lambda (key value)
+		(setf sum (+ sum (* value value)))) vector-space)
+     (sqrt sum)))
+
+(defun euclidean-length-word (word)
    (let ((sum 0))
      (maphash (lambda (key value)
 		(setf sum (+ sum (* value value))))
 	      (get-feature-vector (vs-matrix vs-instance) word))
      (sqrt sum)))
-	      
- (defun euclidean-length2 (vector-space)
-   (let ((sum 0))
-     (maphash (lambda (key value)
-		(setf sum (+ sum (* value value)))) vector-space)
-     (sqrt sum)))	     
-
+	 	     
 ;;; Task 3B
 (defun length-normalize-vs (vs-struct)
-  (maphash (lambda (key value)
-	     (maphash (lambda (k v)
-			(setf (gethash k (gethash key vs-struct))
-				       (/ v (euclidean-length2  
-					     (get-feature-vector vs-struct key)))))
-		      value)) vs-struct)) 
+     (maphash (lambda (key value)
+		(setf (gethash key vs-struct)
+		      (/ value (euclidean-length vs-struct)))) vs-struct))
 
+;; Beste så langt:
+;; (defun length-normalize-vs (vs-struct)
+;;   (maphash (lambda (key value)
+;; 	     (maphash (lambda (k v)
+;; 			(setf (gethash k (gethash key vs-struct))
+;; 				       (/ v (euclidean-length2  
+;; 					     (get-feature-vector vs-struct key)))))
+;; 		      value)) vs-struct))
 
 ;; (defun length-normalize-vs (vs-structure)
 ;;   (maphash (lambda (key value)
@@ -155,7 +161,7 @@
 (defun print-hash-entry (key value)
   (format t "The value associated with the key ~S is ~S~%" key value))
 
-(maphash #'print-hash-entry *space*)
+;;(maphash #'print-hash-entry *space*)
 ;;(maphash #'print-hash-entry (gethash "university" (vs-matrix vs-instance)))
 
 
