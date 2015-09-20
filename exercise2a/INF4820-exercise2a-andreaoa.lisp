@@ -17,7 +17,7 @@
 
 (defstruct (vs)
   (matrix (make-hash-table :test #'equal))
-  (similarity-fn))
+  (similarity-fn ))
 
 (defparameter vs-instance (make-vs)) 
 
@@ -153,7 +153,12 @@
 
 
 ;;; Task 3D
-
+;; Må endres
+(defun word-similarity (vs-struct word1 word2)
+  (let ((vector1 (get-feature-vector vs-struct word1))
+	(vector2 (get-feature-vector vs-struct word2)))
+  (format t "The Cosine similarity between the words ~S and ~S is ~S"
+	 word1 word2 (dot-product vector1 vector2 ))))
 
 ; (format t "The Cosine similarity between the words ~S and ~S is ~S)
 
