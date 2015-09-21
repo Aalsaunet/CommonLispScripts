@@ -19,10 +19,6 @@
   (matrix (make-hash-table :test #'equal))
   (similarity-fn 'dot-product))
 
-;; This variable references the instance of the struct "vs" used in this program.
-;; The vs struct is populated compile-time through the *space-matrix* variable.
-(defparameter vs-instance (make-vs))
-
 ;;; Task 2B
 ;; For creating the vector space I decided to use a two level hash where
 ;; each value of the first level hash is itself a hash table. I chose this approach
@@ -55,7 +51,7 @@
 
 ;; Opens the file with filename=focuswords. Reads line by line (word by word),
 ;; normalized the word and makes a hash in the vs-matrix where the words are keys. 
-(defun read-words-to-hash (focuswords)
+(defun read-words-to-hash (focuswords vs-instance)
   (let ((file-stream (open focuswords)))
     (loop
        for line = (read-line file-stream nil)
@@ -68,7 +64,7 @@
 ;; key in the vs-matrix, thus a focusword, the rest of the words in the sentence
 ;; is stored as feature vectors for that word and the word itself is removed from
 ;; the normalized-list. 
-(defun corpus-to-hash (normalized-list)
+(defun corpus-to-hash (normalized-list vs-instance)
   (dolist (word normalized-list)
     (if (gethash word (vs-matrix vs-instance))
 	(dolist (remaining-word (remove word normalized-list :test #'equal :count 1))
@@ -79,14 +75,14 @@
 ;; Receives a word list, calls normalize-token on each word and checks if it is in
 ;; the stoplist. If it isnt it is added to the normalized-list. After checking all
 ;; the words corpus-to-hash is called with the normalized-list.
-(defun filter-words (wordlist)
+(defun filter-words (wordlist vs-instance)
   (let ((normalized-list '())
 	(currentWord nil))
     (dolist (word wordlist)
       (setf currentWord (normalize-token word))
       (if (not (member currentWord *stop-list* :test #'equal))
 	  (push currentWord normalized-list)))
-    (corpus-to-hash normalized-list)))
+    (corpus-to-hash normalized-list vs-instance)))
 
 ;; Tokenizes the the sentence given (split sentence into word list) and returns it.
 (defun tokenize (string)
@@ -99,22 +95,25 @@
 
 ;; Reads line by line from the corpus and calls the tokenize and filter-words
 ;; functions (in that order) on each line.
-(defun read-from-corpus (corpus)
+(defun read-from-corpus (corpus vs-instance)
   (let ((file-stream (open corpus)))
     (loop
        for line = (read-line file-stream nil)
        while line
-       do (filter-words (tokenize line)))))
+       do (filter-words (tokenize line) vs-instance))))
 
-;; Calls read-words-to-hash and read-from-corpus and "returns" the vs-matrix
-(defun read-corpus-to-vs (focuswords corpus)
-  (read-words-to-hash focuswords)
-  (read-from-corpus corpus)
-  (vs-matrix vs-instance))
+;; Creates an instance of vs and calls read-words-to-hash and read-from-corpus, before
+;; "returning" the vs-object
+(defun read-corpus-to-vs (corpus focuswords)
+  (let ((vs-instance (make-vs)))
+    (read-words-to-hash focuswords vs-instance)
+    (read-from-corpus corpus vs-instance)
+    (eval vs-instance)))
 
-;; This variable references the vs-matrix of the vs-instance (vs-matrix vs-instance)
-;; and calls read-corpus-to-vs to read and create our vectorspace 
-(defparameter *space-matrix* (read-corpus-to-vs "words.txt" "brown2.txt"))
+;; This variable calls read-corpus-to-vs to create an vs-object, read and
+;; create a vectorspace. The vs-instance in then "returned" from read-corpus-to-vs
+;; and stored in this variable
+(defparameter *space* (read-corpus-to-vs "brown2.txt" "words.txt"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -145,15 +144,6 @@
      (maphash (lambda (key value)
 		(declare (ignore key))
 		(setf sum (+ sum (* value value)))) feature-vector)
-     (sqrt sum)))
-
-;; Same function with the word as parameter (for ease of use)
-(defun euclidean-length-word (word)
-   (let ((sum 0))
-     (maphash (lambda (key value)
-		(declare (ignore key))
-		(setf sum (+ sum (* value value))))
-	      (get-feature-vector (vs-matrix vs-instance) word))
      (sqrt sum)))
 	 	     
 ;;; Task 3B
