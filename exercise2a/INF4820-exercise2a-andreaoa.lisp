@@ -17,7 +17,10 @@
 ;;; Task 2A
 (defstruct (vs)
   (matrix (make-hash-table :test #'equal))
-  (similarity-fn 'dot-product)) 
+  (similarity-fn 'dot-product))
+
+;; This variable references the instance of the struct "vs" used in this program.
+(defparameter vs-instance (make-vs))
 
 ;;; Task 2B
 ;; For creating the vector space I decided to use a two level hash where
@@ -108,28 +111,25 @@
   (read-from-corpus corpus)
   (vs-matrix vs-instance))
 
-;; This variable references an instance of the struct "vs" 
-(defparameter vs-instance (make-vs))
-
 ;; This variable references the vs-matrix of the vs-instance (vs-matrix vs-instance)
 ;; and calls read-corpus-to-vs to read and create our vectorspace 
-(defparameter *space* (read-corpus-to-vs "words.txt" "brown2.txt"))
+(defparameter *space-matrix* (read-corpus-to-vs "words.txt" "brown2.txt"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Task 2C
 ;; Gets the feature vector of a given words in a given vector space.
-(defun get-feature-vector (vectorspace word)
-  (gethash word vectorspace))
+(defun get-feature-vector (vs-struct word)
+  (gethash word (vs-matrix vs-struct)))
 
 ;;; Task 2D
 ;; Prints a sorted list of the given number of "limit" features with the
 ;; highest count/value for the given word "word" in vectorspace "vectorspace"
-(defun print-features (vectorspace word limit)
+(defun print-features (vs-struct word limit)
   (let ((key-value-list '()))
     (maphash #'(lambda (key value)
 		 (push (list key value) key-value-list))
-	     (get-feature-vector vectorspace word))
+	     (get-feature-vector vs-struct word))
     (setf key-value-list (sort key-value-list #'> :key #'cadr))
     (dotimes (i limit)
       (let ((pair (pop key-value-list)))
@@ -157,12 +157,12 @@
 	 	     
 ;;; Task 3B
 ;; Normalizes the given vector space so all feature-vectors have unit length
-(defun length-normalize-vs (vectorspace)
+(defun length-normalize-vs (vs-struct)
   (maphash (lambda (key value)
-	     (let ((vlength (euclidean-length (get-feature-vector vectorspace key))))
+	     (let ((vlength (euclidean-length (get-feature-vector vs-struct key))))
 	       (maphash (lambda (k v)
 			  (setf (gethash k value) (/ v vlength))) value)))
-	       vectorspace))
+	       (vs-matrix vs-struct)))
 
 ;;; Task 3C
 ;; Uses the cosine measure for finding the similarity of the two given words.
@@ -180,11 +180,11 @@
 ;; and find the words corresponding vectors from the vs-matrix.
 ;; The function then used the vs-similarity-fn to find the similarity
 ;; and prints the result.
-(defun word-similarity (vs word1 word2)
-  (let ((vector1 (get-feature-vector (vs-matrix vs) word1))
-	(vector2 (get-feature-vector (vs-matrix vs) word2)))
+(defun word-similarity (vs-struct word1 word2)
+  (let ((vector1 (get-feature-vector vs-struct word1))
+	(vector2 (get-feature-vector vs-struct word2)))
   (format t "The Cosine similarity between the words ~S and ~S is ~S"
-	 word1 word2 (funcall (vs-similarity-fn vs) vector1 vector2))))
+	 word1 word2 (funcall (vs-similarity-fn vs-struct) vector1 vector2))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
