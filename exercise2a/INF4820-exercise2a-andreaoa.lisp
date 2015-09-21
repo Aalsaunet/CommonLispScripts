@@ -20,6 +20,7 @@
   (similarity-fn 'dot-product))
 
 ;; This variable references the instance of the struct "vs" used in this program.
+;; The vs struct is populated compile-time through the *space-matrix* variable.
 (defparameter vs-instance (make-vs))
 
 ;;; Task 2B
