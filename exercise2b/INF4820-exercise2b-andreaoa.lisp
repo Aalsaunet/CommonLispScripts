@@ -217,3 +217,22 @@
   (if (gethash word1 (gethash word2 (vs-proxy-matrix vs-struct)))
       (gethash word1 (gethash word2 (vs-proxy-matrix vs-struct)))
       (gethash word2 (gethash word1 (vs-proxy-matrix vs-struct)))))
+
+;;; TASK 1B ;;;
+(defun find-knn (vs-struct word &optional (k 5))
+  (let ((similarity-list '()))
+    (maphash (lambda (key value)
+	       (if (equal word key)
+		   (maphash (lambda (key2 value2)
+			      (push (list key2 value2) similarity-list)) value)
+		   (maphash (lambda (key2 value2)
+			      (if (equal word key2)
+				  (push (list key value2) similarity-list))) value)))
+	     (vs-proxy-matrix vs-struct))
+    (setf similarity-list (sort similarity-list #'> :key #'cadr))
+    (dotimes (i k)
+      (let ((pair (pop similarity-list)))
+	(format t "~S, with a similarity of ~S ~C" (car pair) (cadr pair) #\newline)))))
+
+;; (let ((pair (pop similarity-list)))
+;; 	(format t "~S, with a similarity of ~S ~C" (car pair) (cadr pair) #\newline)))))
