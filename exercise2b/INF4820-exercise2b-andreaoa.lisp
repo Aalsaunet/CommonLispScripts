@@ -188,7 +188,7 @@
   (format t "The value associated with the key ~S is ~S~%" key value))
 
 ;; For testing purposes:
-;;(maphash #'print-hash-entry *space*)
+;;(maphash #'print-hash-entry (vs-proxy-matrix *space*))
 ;;(maphash #'print-hash-entry (gethash "university" (vs-matrix vs-instance)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -196,25 +196,38 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;; EXERCISE 2B ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; TASK 1A ;;;
-(defun search-lvl2-hash(word vs-struct)
-  (let ((not-found T))
-    (maphash (lambda (key value)
-	       (declare (ignore key))
-	       (if (gethash word value)
-		   (progn
-		     (setf not-found nil)
-		     (setf (gethash word value)
-			   (funcall (vs-similarity-fn vs-struct)
-				    (get-feature-vector vs-struct word) value)))))
-	     (vs-proxy-matrix vs-struct))
-    (if not-found
-	(setf (gethash word (vs-proxy-matrix vs-struct)) (make-hash-table :test #'equal)))))
+;; (defun search-lvl2-hash(word vs-struct)
+;;   (let ((not-found T))
+;;     (maphash (lambda (key value)
+;; 	       (declare (ignore key))
+;; 	       (if (gethash word value)
+;; 		   (progn
+;; 		     (setf not-found nil)
+;; 		     (setf (gethash word value)
+;; 			   (funcall (vs-similarity-fn vs-struct)
+;; 				    (get-feature-vector vs-struct word) value)))))
+;; 	     (vs-proxy-matrix vs-struct))
+;;     (if not-found
+;; 	(setf (gethash word (vs-proxy-matrix vs-struct)) (make-hash-table :test #'equal)))))
 
-(defun do-something2(hashtable))
+;; (defun do-something2(hashtable))
+
+;; (defun compute-proximities (vs-struct)
+;;   (maphash (lambda (key value)
+;; 	     (if (gethash key (vs-proxy-matrix vs-struct))
+;; 		 (do-something value)
+;; 		 (search-lvl2-hash key vs-struct)))
+;; 	     (vs-matrix vs-struct)))
 
 (defun compute-proximities (vs-struct)
   (maphash (lambda (key value)
-	     (if (gethash key (vs-proxy-matrix vs-struct))
-		 (do-something value)
-		 (search-lvl2-hash key vs-struct)))
-	     (vs-matrix vs-struct)))
+	     (declare (ignore value))
+	     (setf (gethash key (vs-proxy-matrix vs-struct))
+			(make-hash-table :test #'equal))
+		  (maphash (lambda (key2 value2)
+			     (declare (ignore value2))
+			     (if (not (gethash key2 (vs-proxy-matrix vs-struct)))
+				 (setf (gethash key2
+						(gethash key (vs-proxy-matrix vs-struct)))0)))
+			   (vs-matrix vs-struct)))
+	   (vs-matrix vs-struct)))
