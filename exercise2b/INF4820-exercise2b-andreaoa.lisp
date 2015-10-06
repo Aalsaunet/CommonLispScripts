@@ -220,7 +220,8 @@
 
 ;;; TASK 1B ;;;
 (defun find-knn (vs-struct word &optional (k 5))
-  (let ((similarity-list '()))
+  (let ((similarity-list '())
+	(ranked-list '()))
     (maphash (lambda (key value)
 	       (if (equal word key)
 		   (maphash (lambda (key2 value2)
@@ -232,7 +233,7 @@
     (setf similarity-list (sort similarity-list #'> :key #'cadr))
     (dotimes (i k)
       (let ((pair (pop similarity-list)))
-	(format t "~S, with a similarity of ~S ~C" (car pair) (cadr pair) #\newline)))))
+	(push (car pair) ranked-list)))
+    (return-from find-knn ranked-list)))
 
-;; (let ((pair (pop similarity-list)))
-;; 	(format t "~S, with a similarity of ~S ~C" (car pair) (cadr pair) #\newline)))))
+;;; TASK 2A ;;;
