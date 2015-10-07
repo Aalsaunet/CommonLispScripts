@@ -20,7 +20,7 @@
 (defstruct (vs)
   (matrix (make-hash-table :test #'equal))
   (similarity-fn 'dot-product)
-  (classes (make-array '(6 50)))
+  (classes (make-array '(6 30)))
   (proxy-matrix (make-hash-table :test #'equal)))
 
 ;;; Task 2B
@@ -248,12 +248,15 @@
     (loop
        for line = (read-line file-stream nil)
        while line
-       do (if (equal (aref (trim-parenthesis line) 0) #\:)
+       do (let ((line (trim-parenthesis line)))
+	   (if (not (equal (trim-parenthesis line) "")) 
+	   (if (equal (aref (trim-parenthesis line) 0) #\:)
 	      (progn
 		(incf class-index)
 		(setf word-index 0)
-		(setf (aref (vs-classes vs-struct) class-index word-index) line))
+		(setf (aref (vs-classes vs-struct) class-index word-index) line)
+		(incf word-index))
 	      (progn
 		(setf (aref (vs-classes vs-struct) class-index word-index) line)
-		(incf word-index))))))
+		(incf word-index))))))))
   
