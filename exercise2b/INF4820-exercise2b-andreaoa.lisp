@@ -20,7 +20,7 @@
 (defstruct (vs)
   (matrix (make-hash-table :test #'equal))
   (similarity-fn 'dot-product)
-  (classes (make-array '(6 30)))
+  (classes (make-hash-table :test #'equal))
   (proxy-matrix (make-hash-table :test #'equal)))
 
 ;;; Task 2B
@@ -243,20 +243,19 @@
 
 (defun read-classes (vs-struct trainingdata)
   (let ((file-stream (open trainingdata))
-	(class-index -1)
-	(word-index 0))
+	(current-key nil))
     (loop
        for line = (read-line file-stream nil)
        while line
        do (let ((line (trim-parenthesis line)))
 	   (if (not (equal (trim-parenthesis line) "")) 
 	   (if (equal (aref (trim-parenthesis line) 0) #\:)
-	      (progn
-		(incf class-index)
-		(setf word-index 0)
-		(setf (aref (vs-classes vs-struct) class-index word-index) line)
-		(incf word-index))
-	      (progn
-		(setf (aref (vs-classes vs-struct) class-index word-index) line)
-		(incf word-index))))))))
+	       (progn
+		 (setf current-key (string-trim '(#\:) line))
+		 (setf (gethash (string-trim '(#\:) line) (vs-classes vs-struct)) (list)))
+	       (push line (gethash current-key (vs-classes vs-struct)))))))))
+
+;;; TASK 2B ;;;
+
+
   
