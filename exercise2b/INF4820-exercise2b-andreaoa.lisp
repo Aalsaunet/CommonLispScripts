@@ -20,7 +20,7 @@
 (defstruct (vs)
   (matrix (make-hash-table :test #'equal))
   (similarity-fn 'dot-product)
-  (classes nil)
+  (classes (make-array '(6 50)))
   (proxy-matrix (make-hash-table :test #'equal)))
 
 ;;; Task 2B
@@ -237,3 +237,23 @@
     (return-from find-knn ranked-list)))
 
 ;;; TASK 2A ;;;
+(defun trim-parenthesis (word)
+  (string-trim '(#\Space #\Tab #\Newline #\( #\) )
+  	       (string-downcase word)))
+
+(defun read-classes (vs-struct trainingdata)
+  (let ((file-stream (open trainingdata))
+	(class-index -1)
+	(word-index 0))
+    (loop
+       for line = (read-line file-stream nil)
+       while line
+       do (if (equal (aref (trim-parenthesis line) 0) #\:)
+	      (progn
+		(incf class-index)
+		(setf word-index 0)
+		(setf (aref (vs-classes vs-struct) class-index word-index) line))
+	      (progn
+		(setf (aref (vs-classes vs-struct) class-index word-index) line)
+		(incf word-index))))))
+  
