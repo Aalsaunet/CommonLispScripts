@@ -256,6 +256,13 @@
 	       (push line (gethash current-key (vs-classes vs-struct)))))))))
 
 ;;; TASK 2B ;;;
-
+(defun compute-class-centroids (vs-struct)
+  (maphash (lambda (key value)
+	     (declare (ignore key))
+	     (let ((centroid (make-hash-table :test #'equal))
+		   (feature-vectors (list)))
+	       (dolist (word value)
+		 (push (get-feature-vector vs-struct word) feature-vectors))))
+	     (vs-classes vs-struct)))
 
   
