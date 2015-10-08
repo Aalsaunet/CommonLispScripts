@@ -246,9 +246,17 @@
     (return-from find-knn ranked-list)))
 
 ;;; TASK 2A ;;;
+;; Utility function used for a line or sentence
 (defun trim-parenthesis (word)
   (string-trim '(#\Space #\Tab #\Newline #\( #\) )
   	       (string-downcase word)))
+
+;; This function takes a vs-struct and a file as parameteres and iterates through each
+;; line in the file (which contains the training data). For each line the line is trimmed
+;; by removing whitespaces and parenthesis. If the trimmed lines first character is a colon(:)
+;; its a class and the line/word is used as a new key in the vs-class hash. Its value is set
+;; to be an empty list. If a line/word is not blank, and it doesnt start with a colon (:), its
+;; regarded as a member of the current class and it is appended to the currents class' list.
 
 (defun read-classes (vs-struct trainingdata)
   (let ((file-stream (open trainingdata))
@@ -265,6 +273,13 @@
 	       (push line (gethash current-key (vs-classes vs-struct)))))))))
 
 ;;; TASK 2B ;;;
+;; This function takes a vs-struct and iterates through all the keys in the vs-class hash
+;; (i.e the classes). If the class is not the "unknown-class" it creates a centroid variable
+;; (a hash) and iterates through the words in that class. For each word in the class, the
+;; feature vector is retrieved and its values are assigned to the centroid. After all the
+;; feature vectors and its values are summed up in the centroid, the centroid is divided by
+;; its cardinality and stored in the vs-matrix with its class name as key (e.g. :title).
+
 (defun compute-class-centroids (vs-struct)
   (maphash (lambda (key value)
 	     (if (not (equal key ":unknown"))
@@ -281,6 +296,14 @@
 	     (vs-classes vs-struct)))
 
 ;;; TASK 2C ;;;
+;; This function takes a vs-struct and iterates through all the words in the class ":unknown",
+;; which is a key in the vs-classes hash. It then iterates through all the centroids in the
+;; vs-matrix and computes the proximity between the word and the centroid. The value and
+;; centroid name (class name) is stored if the value is the highest yet. When all the centroids
+;; are checked, the function removes the word from the class ":unknown" and assigns it to the
+;; class which had the nearest centroid and prints out the word, the class it was assign to
+;; and the proximity of those two.
+
 (defun rocchio-classify (vs-struct)
   (dolist (word (gethash ":unknown" (vs-classes vs-struct)))
     (let ((max-similarity-score 0)
@@ -297,3 +320,6 @@
       	   (push word (gethash max-similarity-centroid (vs-classes vs-struct)))
       (format t "Assigned ~S to ~S. Similarit is ~S ~C"
 	      word max-similarity-centroid max-similarity-score #\newline))))
+
+;;; TASK 2D ;;;;
+
