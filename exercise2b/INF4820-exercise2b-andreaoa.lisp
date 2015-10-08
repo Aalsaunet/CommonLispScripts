@@ -194,6 +194,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;; EXERCISE 2B ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; SET UP FUNCTION ;;;
+(defun build-vs (vs-struct)
+  (read-classes vs-struct "classes.txt")
+  (compute-class-centroids vs-struct)
+  (length-normalize-vs vs-struct)
+  (compute-proximities vs-struct))
+
 
 ;;; TASK 1A ;;;
 ;; Builds the proximity-matrix.
@@ -214,9 +221,11 @@
 	   (vs-matrix vs-struct)))
 
 (defun get-proximities (vs-struct word1 word2)
-  (if (gethash word1 (gethash word2 (vs-proxy-matrix vs-struct)))
-      (gethash word1 (gethash word2 (vs-proxy-matrix vs-struct)))
-      (gethash word2 (gethash word1 (vs-proxy-matrix vs-struct)))))
+  (let ((proximity-score (gethash word1 (gethash word2 (vs-proxy-matrix vs-struct)))))
+    (if proximity-score
+	(return-from get-proximities proximity-score))
+    (return-from get-proximities
+      (gethash word2 (gethash word1 (vs-proxy-matrix vs-struct))))))
 
 ;;; TASK 1B ;;;
 (defun find-knn (vs-struct word &optional (k 5))
@@ -252,12 +261,13 @@
 	   (if (equal (aref (trim-parenthesis line) 0) #\:)
 	       (progn
 		 (setf current-key line)
-		 (setf (gethash (string-trim '(#\:) line) (vs-classes vs-struct)) (list)))
+		 (setf (gethash line (vs-classes vs-struct)) (list)))
 	       (push line (gethash current-key (vs-classes vs-struct)))))))))
 
 ;;; TASK 2B ;;;
 (defun compute-class-centroids (vs-struct)
   (maphash (lambda (key value)
+	     (if (not (equal key ":unknown"))
 	     (let ((centroid (make-hash-table :test #'equal))
 		   (wordcount (length value)))
 	       (dolist (word value)
@@ -267,7 +277,23 @@
 	       (maphash (lambda (key2 value2)
 			  (setf (gethash key2 centroid) (/ value2 wordcount)))
 			centroid)
-	       (setf (gethash key (vs-matrix vs-struct)) centroid)))
+	       (setf (gethash key (vs-matrix vs-struct)) centroid))))
 	     (vs-classes vs-struct)))
 
-  
+;;; TASK 2C ;;;
+(defun rocchio-classify (vs-struct)
+  (dolist (word (gethash ":unknown" (vs-classes vs-struct)))
+    (let ((max-similarity-score 0)
+	  (max-similarity-centroid ""))
+      (maphash (lambda (key value)
+	       (declare (ignore value))
+	       (if (not (equal key ":unknown"))
+		   (if (> (get-proximities vs-struct word key) max-similarity-score)
+		       (progn
+			 (setf max-similarity-score (get-proximities vs-struct word key))
+			 (setf max-similarity-centroid key)))))
+	       (vs-classes vs-struct))
+      	   (pop (gethash ":unknown" (vs-classes vs-struct)))
+      	   (push word (gethash max-similarity-centroid (vs-classes vs-struct)))
+      (format t "Assigned ~S to ~S. Similarit is ~S ~C"
+	      word max-similarity-centroid max-similarity-score #\newline))))
