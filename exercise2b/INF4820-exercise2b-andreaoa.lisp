@@ -323,3 +323,24 @@
 
 ;;; TASK 2D ;;;;
 
+;; In this program centroid are treated as word, in the sense that we use the same data type
+;; for the centroids as we do for the feature vectors. As centroid also are vectors, and
+;; has to be of the same type as our feature vectors to be calculated with our existing
+;; functions, the argument for a two level hash as our data type for vectors is still valid.
+;; Hash tables can have some preformance issues as it has to rehash a lot if we require more
+;; space than our initial size, so an option would be to use other data structures such as
+;; an assosiative list for our centroids, as both avoid sparseness (empty slots) but this
+;; would require to redo or add more on our existing implemetation.
+
+;; In this program we also
+;; input the centroids into our vs-matrix (our feature-vector space) for conveniance as it
+;; simplifies some operations and enables us to use our existing functions without modification
+;; (using centroids as words). This is probably not the wisest of choices however, since
+;; centroids are abstract 'words' that is only the average of its members. If we were to
+;; extend the program by e.g. adding more words from the vs-matrix into one class
+;; 'automagically' we would run the risk of accidentally classifying one class inside
+;; another (e.g setting ':instiutuion' to be a member of class ':place_name'. 
+ 
+
+;;; TASK 3A ;;;
+
