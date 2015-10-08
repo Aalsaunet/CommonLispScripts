@@ -251,18 +251,23 @@
 	   (if (not (equal (trim-parenthesis line) "")) 
 	   (if (equal (aref (trim-parenthesis line) 0) #\:)
 	       (progn
-		 (setf current-key (string-trim '(#\:) line))
+		 (setf current-key line)
 		 (setf (gethash (string-trim '(#\:) line) (vs-classes vs-struct)) (list)))
 	       (push line (gethash current-key (vs-classes vs-struct)))))))))
 
 ;;; TASK 2B ;;;
 (defun compute-class-centroids (vs-struct)
   (maphash (lambda (key value)
-	     (declare (ignore key))
 	     (let ((centroid (make-hash-table :test #'equal))
-		   (feature-vectors (list)))
+		   (wordcount (length value)))
 	       (dolist (word value)
-		 (push (get-feature-vector vs-struct word) feature-vectors))))
+		 (maphash (lambda (key2 value2)
+      			    (incf (gethash key2 centroid 0) value2))
+			  (get-feature-vector vs-struct word)))
+	       (maphash (lambda (key2 value2)
+			  (setf (gethash key2 centroid) (/ value2 wordcount)))
+			centroid)
+	       (setf (gethash key (vs-matrix vs-struct)) centroid)))
 	     (vs-classes vs-struct)))
 
   
