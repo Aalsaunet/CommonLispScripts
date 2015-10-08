@@ -344,3 +344,37 @@
 
 ;;; TASK 3A ;;;
 
+;; Two types of commonly used classification algorithms is the rocchio classification and
+;; the kNN classification. These have some similarities, but a lot of differences as well.
+;; Both of these algorithms is based on supervised learning: They are provided test data
+;; ('The gold standard'), that defines the classes and defines some members of the classes.
+;; Rocchio classification uses this training data to construct centroids, a centerpoint of
+;; the class, which is an abstract normalized vector with the average values of its class
+;; members. The centroid construct is therefore the same as the other objects. When we try
+;; to classify an object in rocchio, we ofter use 'hard classes' and classifies the given
+;; object by finding the closest centroid and assigning the object to the class which that
+;; centroid represent. This results in linear decision boundaries where the distance from a
+;; given centroid to a given object is the only thing that matters
+;; (at least in 'hard classification'). Rocchio classifier is thereby only really suited
+;; for linearly seperable classes and does not work well for classes where a single prototype
+;; or center cant accuratly represent the class. In addition to this, the Rocchio classifier
+;; ignores the local distribution of members and implicitly assumes that classes are spheres
+;; with similar radiuses.
+
+;; The kNN classifications differs from Rocchio classification in that is doesnt define any
+;; centroids (or metroids) by its training data. Instead kNN classification assigns classes
+;; to the objects defined by the training data and then classifies others objects by looking
+;; at the class(es) of its nearest (object) neighbours. If e.g k = 30, the kNN looks at the
+;; 30 closest neighbours and their classes and assigns the object to the most occurring class
+;; among the 30 neighbours. This can also typically be done 'soft', as opposed to
+;; 'hard (classes)' by assigning it 'degrees of several classes', e.g object A is 0.60
+;; class X and 0.30 class Y. Thus the classes are determined locally
+;; (just in regards to nearest neighbours), which results in non-linear decision boundaries,
+;; which is more suited for a non-linear disribution than e.g. the Rocchio classification.
+;; That being said, kNN classification is in some ways 'dumber' than e.g. Rocchio
+;; classification in that is does not have any concept of a class other than that some
+;; objects (the training data) belonging to a class and assigning the nearest object of
+;; that classified object to the same class, while Rocchio 'constructs' a
+;; class (i.e a centroid), based of its members.
+
+;;; TASK 3B ;;; 
