@@ -378,3 +378,10 @@
 ;; class (i.e a centroid), based of its members.
 
 ;;; TASK 3B ;;; 
+The k-means clustering in an unsupervised variant of the Rocchio classifier. Where Rocchio classification is reliant on the training data (supervised learning) to specify some classes and class members, and thus the centroids from that, k-means clustering is a clustering algorithms that defines centroids from random seeds. The algorithm is initialized by computing centroids from k seeds. Each object is then assigned to the cluster with the nearest centroid. After all the objects are assigned, new centroids are computed based on the within-cluster sum of squares and the existing centroids are 'moved' to their new location, so that they better represents their members. After this is done, the objects are then again assigned to the centroid they are now closest to (an object may be assigned to a new centroid). This is process is done iteratively until some termination criterion is met.
+
+K-means clustering is thus similar to Rocchio classifier in that it uses centroid to represent classes/clusters, and that the distance between an object and a centroid determines class/cluster memberships (i.e objects are assigned to the nearest centroids). They are different in that Rocchio classification has a more static centroid which is only computed from the training data, while in k-means clustering is it continiously recalculated until the stopping criterion is satisfied.
+
+
+;;; TASK 3C ;;;
+To evaluate our classifier decisions we could go through all our unclassified words ('unknown words') and manually assign them to a class (e.g assign 'egypt' to be a 'place_name' which is the one that best 'describes' our word. When all the unclassified words have been manually classified we could run our algoritms and compare their classification to our own.  
