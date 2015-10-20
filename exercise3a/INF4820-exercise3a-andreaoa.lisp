@@ -49,8 +49,47 @@
 ;; possessive marker is 0.1 according to the Laplace formula:
 ;; PL(POS, NN) = C(NN, POS)/(NN + V) = (0 + 1)/(1 + 9) = 1/10 = 0.1
 
+;;; TASK 1C ;;;
+;; In Part-of-speech tagging we usually want to find the state sequence that maximizes
+;; the P(S|O). The problem that quickly arises from this is that for N observations 
+;; with L states there are L^N sequences. This means that if we have 10 observations 
+;; with 5 states we end up with 9 765 625 (5^10) sequences, which already is pretty 
+;; computationally demanding. The Viterbi algorithm is a dynamic programming algorithm 
+;; which stores previous results for reuse so the program don't have to solve the same 
+;; partial calculations over and over again. This is done by recording and storing 
+;; backpointers that show which previous state led to the maximum probability. This 
+;; enables our program to go 'backwards' from the end of our sentence/sequence, after 
+;; computing every transition probability, by following the backpoints and thus more 
+;; easily find the maximum probability sequence.
 
-			      
-									  
+;; In the Viterbi Algorithm we create two matrices (trellises), one path probability
+;; matrix and one path backpointer matrix, both with the dimensions [N, L + 2]. The first
+;; one is responsible for for storing the probability for moving from one observation Oi to
+;; observation Oi+1 with state Si. This means that one row of the matrix holds one observation
+;; with all its possible states and the cell values is the probabilty of that observation
+;; 'moving' to the state represented by its column. An example is that index [1, 1] holds
+;; the probability of observation 1 to transition to observation 2, state 1, while [1, 3] 
+;; holds the probability of observation 1 to transition to observation 2, state 3.
 
+;; The second matrix, the path backpointer matrix, is responsible for storing backpointers.
+;; This is done by looking back at observation Oi-1 and determining which previous observation
+;; is most likely to 'arrive from'. If we figure out that the most probable path from O1 to O2
+;; is by moving from S1 to S2. A backpointer from [O2, S2] to [O1, S1]. Backpointer matrices
+;; can typically be sparse as [Oi-1, S1] might be best for all [Oi, Sj] and backpointer is
+;; therefore only stores for that path. When we have reached the end of our sequence we will
+;; only have one backpointer to the previous observation, and by following the backpointers
+;; we get the unambigious highest probability route (i.e the maximum probability state
+;; sequence).
+
+;; The Big-O notations dictates the complexity of the algorithms with the formula O(L²N)
+;; This means that if we have three observations (N = 3) and two states (L = 2) we have
+;; 2²*3 = 12 in the worst-case order of growth (i.e in the worst-case-scenario we have to
+;; iterate/compute 12 times).
+
+;; I.: In regards to the length of the input sequence (i.e the number of observations = N) this
+;;     increases the Big-O in a linear fashion.
+
+;; II.: In regards to the size of the tag set (i.e the number of states = L) this increases in a;;      square growth rate.
 									  
+;;; TASK 2A ;;;
+
