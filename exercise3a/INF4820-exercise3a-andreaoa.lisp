@@ -89,7 +89,43 @@
 ;; I.: In regards to the length of the input sequence (i.e the number of observations = N) this
 ;;     increases the Big-O in a linear fashion.
 
-;; II.: In regards to the size of the tag set (i.e the number of states = L) this increases in a;;      square growth rate.
+;; II.: In regards to the size of the tag set (i.e the number of states = L) this increases
+;;      square growth rate.
 									  
 ;;; TASK 2A ;;;
+;; States is a hash table with the a state name/tag as key and index as a value
 
+;; n is the number of states
+
+;; transitions is a 2 dimentional array (matrix) with size [n + 1, n + 1]. The extra row
+;; and column slot holds the name of the tags and the intersection of these holds the
+;; transition probability.
+
+;; emision is an array where each index correspond to the index of a state in the states
+;; hash. Each of the elements in the array holds a hash table with key = word and value =
+;; emission probability of that state-word-pair
+
+;; (defstruct hmm
+;;   (states (make-hash-table :test #'equal))
+;;   (n 1)
+;;   (transitions (make-array (list n n) :initial-element 0))
+;;   (emissions (make-array n)))
+
+(defstruct hmm states n transitions emissions)
+
+;;; TASK 2B ;;;
+(defun transition-probability (hmm stateId1 stateId2)
+  (aref (hmm-transitions hmm) stateId1 stateId2))
+
+(defun emission-probability (hmm stateId word)
+  (gethash word (aref (hmm-emissions hmm) stateId)))
+
+(defun state2id (hmm state-label)
+  (let ((index (gethash state-label (hmm-states hmm))))
+  (if index
+      (return-from state2id index)
+      (progn
+	(setf (gethash state-label (hmm-states hmm)) (hmm-n hmm))
+	(incf (hmm-n hmm))))))
+
+;;; TASK 3A ;;;
