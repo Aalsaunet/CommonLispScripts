@@ -102,8 +102,8 @@
 ;; transition probability.
 
 ;; emision is an array where each index correspond to the index of a state in the states
-;; hash. Each of the elements in the array holds a hash table with key = word and value =
-;; emission probability of that state-word-pair
+;; hash. Each of the elements in the array holds a hash table with key = observation
+;; and value = emission probability of that state-word-pair
 
 ;; (defstruct hmm
 ;;   (states (make-hash-table :test #'equal))
@@ -111,7 +111,7 @@
 ;;   (transitions (make-array (list n n) :initial-element 0))
 ;;   (emissions (make-array n)))
 
-(defstruct hmm states n transitions emissions)
+(defstruct hmm states n transitions emissions next-available-state-index)
 
 ;;; TASK 2B ;;;
 (defun transition-probability (hmm stateId1 stateId2)
@@ -125,7 +125,55 @@
   (if index
       (return-from state2id index)
       (progn
-	(setf (gethash state-label (hmm-states hmm)) (hmm-n hmm))
-	(incf (hmm-n hmm))))))
+	(setf (gethash state-label (hmm-states hmm)) (hmm-next-available-state-index hmm))
+	(incf (hmm-next-available-state-index hmm))
+	(return-from state2id (gethash state-label (hmm-states hmm)))))))
 
 ;;; TASK 3A ;;;
+(defun create-hmm (state-count)
+  (make-hmm :states (make-hash-table :test #'equal)
+	    :n state-count
+	    :transitions (make-array (list (+ state-count 1)
+					   (+ state-count 1)) :initial-element 0)
+	    :emissions (make-array state-count)
+	    :next-available-state-index 0))
+
+;; Tokenizes the the sentence given (split sentence into word list) and returns it.
+(defun tokenize (string)
+  (loop
+     for start = 0 then (+ space 1)
+     for space = (position #\Tab string :start start)
+     for token = (subseq string start space)
+     unless (string= token "") collect token
+     until (not space)))
+
+
+
+(defun read-corpus (corpus state-count)
+  (let ((hmm (create-hmm state-count))
+	(file-stream (open corpus))
+	(previous-state "<S>"))
+    (state2id hmm "<S>")
+    (state2id hmm "</S>")
+    (loop
+       for line = (read-line file-stream nil)
+       while line
+       do (let ((tokens (tokenize line)))
+	    (if (equal (car tokens) "")
+		(progn
+		  (incf (aref (hmm-transitions hmm) (state2id hmm previous-state)
+			      (state2id hmm "</S>")))
+		  (setf previous-state "<S>")
+		  )
+		(progn
+		  (incf (aref (hmm-transitions hmm) (state2id hmm previous-state)
+			      (state2id hmm (cadr tokens))))
+		  (setf previous-state (cadr tokens))		  
+		  (if (not (aref (hmm-emissions hmm) (state2id hmm (cadr tokens))))
+		      (setf (aref (hmm-emissions hmm) (state2id hmm (cadr tokens)))
+			    (make-hash-table :test #'equal)))
+		  (incf (gethash (car tokens) (aref (hmm-emissions hmm)
+						    (state2id hmm (cadr tokens))) 0))))))
+    (incf (aref (hmm-transitions hmm) (state2id hmm previous-state) (state2id hmm "</S>")))
+    (return-from read-corpus hmm)))
+
