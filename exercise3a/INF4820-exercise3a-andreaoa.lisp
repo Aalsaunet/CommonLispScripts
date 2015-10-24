@@ -133,9 +133,9 @@
 (defun create-hmm (state-count)
   (make-hmm :states (make-hash-table :test #'equal)
 	    :n state-count
-	    :transitions (make-array (list (+ state-count 1)
-					   (+ state-count 1)) :initial-element 0)
-	    :emissions (make-array state-count)
+	    :transitions (make-array (list (+ state-count 2)
+					   (+ state-count 2)) :initial-element 0)
+	    :emissions (make-array (+ state-count 2) :initial-element 0)
 	    :next-available-state-index 0))
 
 ;; Tokenizes the the sentence given (split sentence into word list) and returns it.
@@ -152,28 +152,46 @@
 (defun read-corpus (corpus state-count)
   (let ((hmm (create-hmm state-count))
 	(file-stream (open corpus))
-	(previous-state "<S>"))
-    (state2id hmm "<S>")
-    (state2id hmm "</S>")
+	(previous-state "<s>"))
+    (state2id hmm "<s>")
+    (state2id hmm "</s>")
     (loop
        for line = (read-line file-stream nil)
        while line
        do (let ((tokens (tokenize line)))
-	    (if (equal (car tokens) "")
+	    (if (not (car tokens))
 		(progn
+		  (print "Empty line encountered!")
 		  (incf (aref (hmm-transitions hmm) (state2id hmm previous-state)
-			      (state2id hmm "</S>")))
-		  (setf previous-state "<S>")
+			      (state2id hmm "</s>")))
+		  (setf previous-state "<s>")
 		  )
 		(progn
 		  (incf (aref (hmm-transitions hmm) (state2id hmm previous-state)
 			      (state2id hmm (cadr tokens))))
 		  (setf previous-state (cadr tokens))		  
-		  (if (not (aref (hmm-emissions hmm) (state2id hmm (cadr tokens))))
+		  (if (equal (aref (hmm-emissions hmm) (state2id hmm (cadr tokens))) 0)
 		      (setf (aref (hmm-emissions hmm) (state2id hmm (cadr tokens)))
 			    (make-hash-table :test #'equal)))
 		  (incf (gethash (car tokens) (aref (hmm-emissions hmm)
 						    (state2id hmm (cadr tokens))) 0))))))
-    (incf (aref (hmm-transitions hmm) (state2id hmm previous-state) (state2id hmm "</S>")))
+    (incf (aref (hmm-transitions hmm) (state2id hmm previous-state) (state2id hmm "</s>")))
     (return-from read-corpus hmm)))
 
+;;; TASK 3B ;;;
+
+(defun train-hmm ()
+
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; Method for printing out hash keys and values
+(defun print-hash-entry (key value)
+  (format t "The value associated with the key ~S is ~S~%" key value))
+
+;; For testing purposes:
+;;(maphash #'print-hash-entry (hmm-states eisner))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
