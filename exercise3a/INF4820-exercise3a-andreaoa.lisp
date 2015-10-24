@@ -133,9 +133,8 @@
 (defun create-hmm (state-count)
   (make-hmm :states (make-hash-table :test #'equal)
 	    :n state-count
-	    :transitions (make-array (list (+ state-count 2)
-					   (+ state-count 2)) :initial-element 0)
-	    :emissions (make-array (+ state-count 2) :initial-element 0)
+	    :transitions (make-array (list state-count state-count) :initial-element 0)
+	    :emissions (make-array state-count :initial-element 0)
 	    :next-available-state-index 0))
 
 ;; Tokenizes the the sentence given (split sentence into word list) and returns it.
@@ -150,7 +149,7 @@
 
 
 (defun read-corpus (corpus state-count)
-  (let ((hmm (create-hmm state-count))
+  (let ((hmm (create-hmm (+ state-count 2)))
 	(file-stream (open corpus))
 	(previous-state "<s>"))
     (state2id hmm "<s>")
@@ -161,7 +160,6 @@
        do (let ((tokens (tokenize line)))
 	    (if (not (car tokens))
 		(progn
-		  (print "Empty line encountered!")
 		  (incf (aref (hmm-transitions hmm) (state2id hmm previous-state)
 			      (state2id hmm "</s>")))
 		  (setf previous-state "<s>")
@@ -180,9 +178,21 @@
 
 ;;; TASK 3B ;;;
 
-(defun train-hmm ()
+(defun find-state-count (x hmm)
+  (let ((sum 0))
+    (dotimes (y (hmm-n hmm))
+      (setf sum (+ sum (aref (hmm-transitions hmm) x y))))
+    (print sum)
+    (return-from find-state-count sum)))
 
-  )
+(defun train-hmm (hmm)
+  (dotimes (x (hmm-n hmm))
+    (dotimes (y (hmm-n hmm))
+      (let ((denominator (find-state-count x hmm)))
+	(if (not (equal denominator 0))
+	    (setf (aref (hmm-transitions hmm) x y)
+		  (/ (aref (hmm-transitions hmm) x y) denominator)))))))
+  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
