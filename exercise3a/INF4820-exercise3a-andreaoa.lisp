@@ -182,16 +182,25 @@
   (let ((sum 0))
     (dotimes (y (hmm-n hmm))
       (setf sum (+ sum (aref (hmm-transitions hmm) x y))))
-    (print sum)
     (return-from find-state-count sum)))
 
 (defun train-hmm (hmm)
   (dotimes (x (hmm-n hmm))
-    (dotimes (y (hmm-n hmm))
-      (let ((denominator (find-state-count x hmm)))
-	(if (not (equal denominator 0))
+    (let ((denominator (find-state-count x hmm)))
+      (if (not (equal denominator 0))
+	  (progn
+	  ;; Calculating the transitions
+	  (dotimes (y (hmm-n hmm))
 	    (setf (aref (hmm-transitions hmm) x y)
-		  (/ (aref (hmm-transitions hmm) x y) denominator)))))))
+		  (/ (aref (hmm-transitions hmm) x y) denominator)))
+	  ;; Calculating the emissions
+	  (if (not (equal (aref (hmm-emissions hmm) x) 0))	
+	      (maphash (lambda (key value)
+			 (setf (gethash key (aref (hmm-emissions hmm) x))
+			       (/ value denominator)))	 
+		       (aref (hmm-emissions hmm) x))))))))
+
+;;; TASK 4A ;;;
   
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
