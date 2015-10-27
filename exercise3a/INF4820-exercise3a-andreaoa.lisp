@@ -177,7 +177,6 @@
     (return-from read-corpus hmm)))
 
 ;;; TASK 3B ;;;
-
 (defun find-state-count (x hmm)
   (let ((sum 0))
     (dotimes (y (hmm-n hmm))
@@ -201,6 +200,41 @@
 		       (aref (hmm-emissions hmm) x))))))))
 
 ;;; TASK 4A ;;;
+;; (defun find-max-probability
+
+;;    )
+
+(defun viterbi (hmm input)
+  (let ((viterbi (make-array (list (length input) (+ (hmm-n hmm) 1))))
+	(backpointer (make-array (list (length input) (+ (hmm-n hmm) 1)))))
+
+    (maphash (lambda (key value)
+	       (declare (ignore key))
+	       (if (not (equal (aref (hmm-emissions hmm) value) 0))
+		   (setf (aref viterbi 0 value)
+			 (* (transition-probability hmm (state2id hmm "<s>") value)
+			    (emission-probability hmm value (car input))))
+		   (setf (aref viterbi 0 value) 1/1000000))
+	       (setf (aref backpointer 0 value) 0))
+	     (hmm-states hmm))
+
+    (dotimes (previous-o (length(cdr input)))
+      (maphash (lambda (key current-s)
+	       (declare (ignore key))
+	       (let ((max 1/1000000))
+		 (maphash (lambda (key previous-s)
+			    (declare (ignore key))
+			    (if (not (equal (aref (hmm-emissions hmm) current-s) 0))
+				(let ((previous-row (* (aref viterbi previous-o previous-s)
+						       (transition-probability
+							  hmm previous-s current-s)
+						       (emission-probability hmm current-s
+						         (nth (+ previous-o 1) input)))))
+			      (if (> previous-row max)
+				  (setf max previous-row))))) (hmm-states hmm))
+		 (setf (aref viterbi (+ previous-o 1) current-s) max)))
+	       (hmm-states hmm)))
+    (print viterbi)))
   
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
