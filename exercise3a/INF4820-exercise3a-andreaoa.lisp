@@ -221,7 +221,9 @@
     (dotimes (previous-o (length(cdr input)))
       (maphash (lambda (key current-s)
 	       (declare (ignore key))
-	       (let ((max 1/1000000))
+	       (let ((max 1/1000000)
+		     (argmax-index '(0 0))
+		     (argmax-value 0))
 		 (maphash (lambda (key previous-s)
 			    (declare (ignore key))
 			    (if (not (equal (aref (hmm-emissions hmm) current-s) 0))
@@ -231,10 +233,34 @@
 						       (emission-probability hmm current-s
 						         (nth (+ previous-o 1) input)))))
 			      (if (> previous-row max)
-				  (setf max previous-row))))) (hmm-states hmm))
-		 (setf (aref viterbi (+ previous-o 1) current-s) max)))
+				  (setf max previous-row))))
+			    (let ((previous-row (* (aref viterbi previous-o previous-s)
+						   (transition-probability
+						    hmm previous-s current-s))))
+			      (if (> previous-row argmax-value)
+				  (setf argmax-index (list previous-o previous-s)))))
+			  (hmm-states hmm))
+		 (setf (aref viterbi (+ previous-o 1) current-s) max)
+		 (setf (aref backpointer (+ previous-o 1) current-s) argmax-index)))
 	       (hmm-states hmm)))
-    (print viterbi)))
+
+    (let ((max-value 0)
+	  (max-index '()))
+      (maphash (lambda (key state)
+		 (declare (ignore key))
+		 (let ((previous-row (* (aref viterbi (- (length input) 1) state)
+					(transition-probability hmm state
+								(state2id hmm "</s>"))))
+		       (previous-index (list (- (length input) 1) state)))
+		   (if (> previous-row max-value)
+		       (progn
+			 (setf max-value previous-row)
+			 (setf max-index previous-index)))))
+	       (hmm-states hmm))
+      (setf (aref viterbi (- (length input) 1) (hmm-n hmm)) max-value)
+      (setf (aref backpointer (- (length input) 1) (hmm-n hmm)) max-index))
+    (print viterbi)
+    (print backpointer)))
   
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
