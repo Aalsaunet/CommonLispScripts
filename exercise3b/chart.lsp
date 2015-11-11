@@ -9,7 +9,7 @@
   ;; least, possibly also indices to make finding rules or lexemes easier
   ;;
   (rules '()) ; List of rule structs
-  (lexeme '()) ; List of lexeme structs
+  (lexeme (make-hash-table :test #'equal)) ; List of lexeme structs
   (start 'start))
 
 
@@ -42,14 +42,39 @@
   ;;
   )
 ;; Does not handle uniqueness or 
+;; (defun parse-tree (grammar tree)
+;;   (if (null (listp tree))
+;;       (return-from parse-tree nil))
+;;   (let ((rule (make-rule)))
+;;     ;Finding and saving the rule to the struct
+;;     (setf (rule-lhs rule) (first tree))
+;;     (loop 
+;;        for subtree in (rest tree)
+;;        do (push (first subtree) (rule-rhs rule)))
+;;     (push rule (grammar-rules grammar)))
+;;   (print tree)
+;;   (loop
+;;      for subtree in (rest tree)
+;;      do (parse-tree grammar subtree))
+;;   )
+
 (defun parse-tree (grammar tree)
   (let ((rule (make-rule)))
+    ;Finding and saving the rule to the struct
     (setf (rule-lhs rule) (first tree))
-    (loop
+    (loop 
        for subtree in (rest tree)
-       do (push (first subtree) (rule-rhs rule)))
-    (push rule (grammar-rules grammar)))
-  )
+       when (listp subtree)
+       do (progn	    
+	    (parse-tree grammar subtree)
+	    (push (first subtree) (rule-rhs rule)))
+       unless (listp subtree)
+       do (progn
+	    (let ((word (gethash subtree (grammar-lexeme grammar))))
+	      (if (null word)
+		  (setf (gethash subtree (grammar-lexeme grammar)) (make-lexeme)))
+	      (push (first tree) (lexeme-category word))))
+    (push rule (grammar-rules grammar)))))
 
 (defun read-grammar (file)
   ;; this function reads in a treebank file, records the rules and lexemes seen
