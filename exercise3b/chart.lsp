@@ -9,16 +9,16 @@
   ;; least, possibly also indices to make finding rules or lexemes easier
   ;;
   (rules '()) ; List of rule structs
-  (lexeme (make-hash-table :test #'equal)) ; List of lexeme structs
+  (lexeme (make-hash-table :test #'equal)) ; key = word, value = lexeme-struct
   (start 'start))
 
 
 
 (defstruct rule
-  lhs rhs (probability 1))
+  lhs rhs (probability 1)) 
 
 (defstruct lexeme
-  category (probability 1))
+  (category (make-hash-table :test #'equal))) ; key = category, value = probability
 
 ;;
 ;; a minimum count (i.e. raw frequency) required for inclusion of rules in the
@@ -41,40 +41,30 @@
   ;; return a list of lexemes (from the global grammar) for the given word
   ;;
   )
-;; Does not handle uniqueness or 
-;; (defun parse-tree (grammar tree)
-;;   (if (null (listp tree))
-;;       (return-from parse-tree nil))
-;;   (let ((rule (make-rule)))
-;;     ;Finding and saving the rule to the struct
-;;     (setf (rule-lhs rule) (first tree))
-;;     (loop 
-;;        for subtree in (rest tree)
-;;        do (push (first subtree) (rule-rhs rule)))
-;;     (push rule (grammar-rules grammar)))
-;;   (print tree)
-;;   (loop
-;;      for subtree in (rest tree)
-;;      do (parse-tree grammar subtree))
-;;   )
 
 (defun parse-tree (grammar tree)
-  (let ((rule (make-rule)))
-    ;Finding and saving the rule to the struct
-    (setf (rule-lhs rule) (first tree))
+  (let ((rule (make-rule))
+	(lexeme (make-lexeme))
+	(add-rule nil)) 
     (loop 
        for subtree in (rest tree)
-       when (listp subtree)
-       do (progn	    
-	    (parse-tree grammar subtree)
-	    (push (first subtree) (rule-rhs rule)))
+       when (listp subtree) 
+       do (progn ;is a rule
+	    (setf add-rule T)
+	    (push (first subtree) (rule-rhs rule))
+	    (parse-tree grammar subtree))
        unless (listp subtree)
-       do (progn
-	    (let ((word (gethash subtree (grammar-lexeme grammar))))
+       do (progn ;is a lexeme
+       	    (let ((word (gethash subtree (grammar-lexeme grammar))))
 	      (if (null word)
-		  (setf (gethash subtree (grammar-lexeme grammar)) (make-lexeme)))
-	      (push (first tree) (lexeme-category word))))
-    (push rule (grammar-rules grammar)))))
+		  (progn
+		    (setf (gethash subtree (grammar-lexeme grammar)) lexeme)
+		    (setf word (gethash subtree (grammar-lexeme grammar)))))
+	      (incf (gethash (first tree) (lexeme-category word) 0)))))
+    (if add-rule ; rule or lexeme
+	(progn
+	  (setf (rule-lhs rule) (first tree))
+	  (push rule (grammar-rules grammar))))))
 
 (defun read-grammar (file)
   ;; this function reads in a treebank file, records the rules and lexemes seen
@@ -87,8 +77,16 @@
        for tree = (read file-stream nil)
        while tree
        do (parse-tree grammar tree))
-    (return-from read-grammar grammar)
-  ))
+    (return-from read-grammar grammar)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Method for printing out hash keys and values
+(defun print-hash-entry (key value)
+  (format t "The value associated with the key ~S is ~S~%" key value))
+
+;; For testing purposes:
+;;(maphash #'print-hash-entry (hmm-states eisner))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;
 ;;; from here onwards, we provide most of the code (and generous comments), 
