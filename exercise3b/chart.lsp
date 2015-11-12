@@ -41,6 +41,35 @@
   ;; return a list of lexemes (from the global grammar) for the given word
   ;;
   )
+;; Checks if a rule is unary (e.g. NP -> NP) and returns true if it isnt, and false if it is.
+(defun not-unary (rule)
+  (if (and (eq (length (rule-rhs rule)) 1) (equal (rule-lhs rule) (first (rule-rhs rule))))
+      (return-from not-unary nil)
+      (return-from not-unary T)))
+
+;; (defun new-rule (grammar rule)
+;;   (loop
+;;      for existing-rule being the elements of (grammar-rules grammar)
+;;      when (not (equalp rule existing-rule))
+;;      do (progn
+;; 	  (print existing-rule)
+;; 	  (incf (rule-probability existing-rule)) 
+;; 	  (return-from new-rule nil)))
+;;   (return-from new-rule T))
+
+(defun new-rule (grammar rule)
+  (loop
+     for existing-rule being the elements of (grammar-rules grammar)
+     when (equalp rule existing-rule)
+     do (progn
+	  (print existing-rule)))
+  (return-from new-rule T))
+
+;; (defun new-rule (grammar rule)
+;;   (dolist (existing-rule (grammar-rules grammar))
+;;     (if (equalp existing-rule rule)
+;; 	(return-from new-rule nil))
+;;     (return-from new-rule T)))
 
 (defun parse-tree (grammar tree)
   (let ((rule (make-rule))
@@ -62,9 +91,11 @@
 		    (setf word (gethash subtree (grammar-lexeme grammar)))))
 	      (incf (gethash (first tree) (lexeme-category word) 0)))))
     (if add-rule ; rule or lexeme
-	(progn
-	  (setf (rule-lhs rule) (first tree))
-	  (push rule (grammar-rules grammar))))))
+	(if (not-unary rule)
+	    (if (new-rule grammar rule)
+		(progn
+		  (setf (rule-lhs rule) (first tree))
+		  (push rule (grammar-rules grammar))))))))
 
 (defun read-grammar (file)
   ;; this function reads in a treebank file, records the rules and lexemes seen
