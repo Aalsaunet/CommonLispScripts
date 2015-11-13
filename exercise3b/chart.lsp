@@ -10,6 +10,7 @@
   ;;
   (rules (make-hash-table :test #'equal)) ; Key = first RHS, value = list of rule-structs
   (lexemes (make-hash-table :test #'equal)) ; Key = word, value = list of lexeme-structs
+  (tag-count (make-hash-table :test #'equal)) ; Key = tag, value = count
   (start 'start))
 
 
@@ -65,6 +66,7 @@
 
 (defun add-rule (grammar rule)
   (let ((rulelist (gethash (rule-lhs rule) (grammar-rules grammar))))
+    (incf (gethash (rule-lhs rule) (grammar-tag-count grammar) 0))
     (if (null rulelist)
 	(setf (gethash (rule-lhs rule) (grammar-rules grammar)) (list rule))
 	(let ((existing-rule (find-rule rule rulelist)))
@@ -76,6 +78,7 @@
 (defun add-lexeme (grammar tree word)
   (let ((lexeme (make-lexeme :category (first tree)))
 	(lexemelist (gethash word (grammar-lexemes grammar))))
+    (incf (gethash (first tree) (grammar-tag-count grammar) 0))
     (if (null lexemelist)
 	(setf (gethash word (grammar-lexemes grammar)) (list lexeme))
 	(let ((existing-lexeme (find-lexeme lexeme lexemelist)))
@@ -106,25 +109,21 @@
 (defun calculate-rule-probabilities (grammar)
   (loop
      for rulelist being the hash-value in (grammar-rules grammar)
-     do (progn
-	  (let ((lhs-sum 0))
-	    (loop for rule in rulelist
-	       do (setf lhs-sum (+ lhs-sum (rule-probability rule))))
-	    (loop for rule in rulelist
-	       do (setf (rule-probability rule)
-			(log (/ (rule-probability rule) lhs-sum))))))))
+     do (loop for rule in rulelist
+	   do (setf (rule-probability rule)
+		    (log (/ (rule-probability rule)
+			    (gethash (rule-lhs rule)
+				     (grammar-tag-count grammar))))))))
        
 
 (defun calculate-lexeme-probabilities (grammar)
   (loop
      for lexemelist being the hash-value in (grammar-lexemes grammar)
-     do (progn
-	  (let ((category-sum 0))
-	    (loop for lexeme in lexemelist
-	       do (setf category-sum (+ category-sum (lexeme-probability lexeme))))
-	    (loop for lexeme in lexemelist
-	       do (setf (lexeme-probability lexeme)
-			(log (/ (lexeme-probability lexeme) category-sum))))))))
+     do (loop for lexeme in lexemelist
+	   do (setf (lexeme-probability lexeme)
+		    (log (/ (lexeme-probability lexeme)
+			    (gethash (lexeme-category lexeme)
+				     (grammar-tag-count grammar))))))))
 
 (defun read-grammar (file)
   ;; this function reads in a treebank file, records the rules and lexemes seen
