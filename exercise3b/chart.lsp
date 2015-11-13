@@ -8,8 +8,8 @@
   ;; fill in the rest of what is needed: a place to store rules and lexemes at
   ;; least, possibly also indices to make finding rules or lexemes easier
   ;;
-  (rules '()) ; List of rule structs
-  (lexeme (make-hash-table :test #'equal)) ; key = word, value = lexeme-struct
+  (rules (make-hash-table :test #'equal)) ; Key = first RHS, value = list of rule-structs
+  (lexeme (make-hash-table :test #'equal)) ; Key = word, value = list of lexeme-structs
   (start 'start))
 
 
@@ -19,6 +19,7 @@
 
 (defstruct lexeme
   (category (make-hash-table :test #'equal))) ; key = category, value = probability
+  ;;category (probability 1))
 
 ;;
 ;; a minimum count (i.e. raw frequency) required for inclusion of rules in the
@@ -47,34 +48,17 @@
       (return-from not-unary nil)
       (return-from not-unary T)))
 
+;; TODO
 ;; (defun new-rule (grammar rule)
 ;;   (loop
-;;      for existing-rule being the elements of (grammar-rules grammar)
-;;      when (not (equalp rule existing-rule))
-;;      do (progn
-;; 	  (print existing-rule)
-;; 	  (incf (rule-probability existing-rule)) 
-;; 	  (return-from new-rule nil)))
+;;      for existing-rule in (grammar-rules grammar)
+;;      when (equal (rule-lhs rule) (rule-lhs existing-rule))
+;;      do (return-from new-rule nil))
 ;;   (return-from new-rule T))
 
-(defun new-rule (grammar rule)
-  (loop
-     for existing-rule being the elements of (grammar-rules grammar)
-     when (equalp rule existing-rule)
-     do (progn
-	  (print existing-rule)))
-  (return-from new-rule T))
-
-;; (defun new-rule (grammar rule)
-;;   (dolist (existing-rule (grammar-rules grammar))
-;;     (if (equalp existing-rule rule)
-;; 	(return-from new-rule nil))
-;;     (return-from new-rule T)))
 
 (defun parse-tree (grammar tree)
-  (let ((rule (make-rule))
-	(lexeme (make-lexeme))
-	(add-rule nil)) 
+  (let ((rule (make-rule)) lexeme (add-rule nil)) 
     (loop 
        for subtree in (rest tree)
        when (listp subtree) 
@@ -83,7 +67,8 @@
 	    (push (first subtree) (rule-rhs rule))
 	    (parse-tree grammar subtree))
        unless (listp subtree)
-       do (progn ;is a lexeme
+       do (progn ;is a lexeme'
+	    (setf lexeme (make-lexeme))
        	    (let ((word (gethash subtree (grammar-lexeme grammar))))
 	      (if (null word)
 		  (progn
@@ -92,10 +77,13 @@
 	      (incf (gethash (first tree) (lexeme-category word) 0)))))
     (if add-rule ; rule or lexeme
 	(if (not-unary rule)
-	    (if (new-rule grammar rule)
-		(progn
-		  (setf (rule-lhs rule) (first tree))
-		  (push rule (grammar-rules grammar))))))))
+	    (progn
+	      (setf (rule-lhs rule) (first tree))
+	      (setf (rule-rhs rule) (reverse (rule-rhs rule)))
+	      (let ((rulehash (gethash (first (rule-rhs rule)) (grammar-rules grammar))))
+		(if (null rulehash)
+		    (setf (gethash (first (rule-rhs rule)) (grammar-rules grammar)) rule)
+		    (incf (rule-probability rulehash)))))))))
 
 (defun read-grammar (file)
   ;; this function reads in a treebank file, records the rules and lexemes seen
