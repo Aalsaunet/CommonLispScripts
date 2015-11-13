@@ -10,7 +10,7 @@
   ;;
   (rules (make-hash-table :test #'equal)) ; Key = first RHS, value = list of rule-structs
   (lexemes (make-hash-table :test #'equal)) ; Key = word, value = list of lexeme-structs
-  (tag-count (make-hash-table :test #'equal)) ; Key = tag, value = count
+  (categories (make-hash-table :test #'equal)) ; Key = category, value = count
   (start 'start))
 
 
@@ -43,6 +43,8 @@
   ;;
   )
 
+;;;;;;;;;;;;;;;;;;;;;;;;; TASK 2A ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; Checks if a rule is unary (e.g. NP -> NP) and returns true if it isnt, and false if it is.
 (defun not-unary (rule)
   (if (and (eq (length (rule-rhs rule)) 1) (equal (rule-lhs rule) (first (rule-rhs rule))))
@@ -66,7 +68,7 @@
 
 (defun add-rule (grammar rule)
   (let ((rulelist (gethash (rule-lhs rule) (grammar-rules grammar))))
-    (incf (gethash (rule-lhs rule) (grammar-tag-count grammar) 0))
+    (incf (gethash (rule-lhs rule) (grammar-categories grammar) 0))
     (if (null rulelist)
 	(setf (gethash (rule-lhs rule) (grammar-rules grammar)) (list rule))
 	(let ((existing-rule (find-rule rule rulelist)))
@@ -78,7 +80,7 @@
 (defun add-lexeme (grammar tree word)
   (let ((lexeme (make-lexeme :category (first tree)))
 	(lexemelist (gethash word (grammar-lexemes grammar))))
-    (incf (gethash (first tree) (grammar-tag-count grammar) 0))
+    (incf (gethash (first tree) (grammar-categories grammar) 0))
     (if (null lexemelist)
 	(setf (gethash word (grammar-lexemes grammar)) (list lexeme))
 	(let ((existing-lexeme (find-lexeme lexeme lexemelist)))
@@ -113,7 +115,7 @@
 	   do (setf (rule-probability rule)
 		    (log (/ (rule-probability rule)
 			    (gethash (rule-lhs rule)
-				     (grammar-tag-count grammar))))))))
+				     (grammar-categories grammar))))))))
        
 
 (defun calculate-lexeme-probabilities (grammar)
@@ -123,7 +125,7 @@
 	   do (setf (lexeme-probability lexeme)
 		    (log (/ (lexeme-probability lexeme)
 			    (gethash (lexeme-category lexeme)
-				     (grammar-tag-count grammar))))))))
+				     (grammar-categories grammar))))))))
 
 (defun read-grammar (file)
   ;; this function reads in a treebank file, records the rules and lexemes seen
@@ -140,14 +142,31 @@
     (calculate-lexeme-probabilities grammar)
     (return-from read-grammar grammar)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; TASK 2B ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun rules-starting-in (category grammar)
+  (let (resultlist)
+    (loop
+     for rulelist being the hash-value in (grammar-rules grammar)
+     do (loop for rule in rulelist
+	   when (equal (first (rule-rhs rule)) category)
+	   do (push rule resultlist)))
+  (return-from rules-starting-in resultlist)))
+
+(defun get-lexemes (word grammar)
+  (gethash word (grammar-lexemes grammar)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Method for printing out hash keys and values
 (defun print-hash-entry (key value)
   (format t "The value associated with the key ~S is ~S~%" key value))
 
 ;; For testing purposes:
 ;;(maphash #'print-hash-entry (hmm-states eisner))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;
 ;;; from here onwards, we provide most of the code (and generous comments), 
