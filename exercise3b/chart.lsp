@@ -18,8 +18,8 @@
   lhs rhs (probability 1)) 
 
 (defstruct lexeme
-  (category (make-hash-table :test #'equal))) ; key = category, value = probability
-  ;;category (probability 1))
+  ;;(category (make-hash-table :test #'equal))) ; key = category, value = probability
+  category (probability 1))
 
 ;;
 ;; a minimum count (i.e. raw frequency) required for inclusion of rules in the
@@ -42,40 +42,49 @@
   ;; return a list of lexemes (from the global grammar) for the given word
   ;;
   )
+
 ;; Checks if a rule is unary (e.g. NP -> NP) and returns true if it isnt, and false if it is.
 (defun not-unary (rule)
   (if (and (eq (length (rule-rhs rule)) 1) (equal (rule-lhs rule) (first (rule-rhs rule))))
       (return-from not-unary nil)
       (return-from not-unary T)))
 
-;; TODO
-;; (defun new-rule (grammar rule)
-;;   (loop
-;;      for existing-rule in (grammar-rules grammar)
-;;      when (equal (rule-lhs rule) (rule-lhs existing-rule))
-;;      do (return-from new-rule nil))
-;;   (return-from new-rule T))
+(defun find-rule (rule rulelist)
+  (loop
+     for element in rulelist
+     when (and (equal (rule-lhs element) (rule-lhs rule))
+	       (equal (rule-rhs element) (rule-rhs rule))) 
+     do (return-from find-rule element))
+  (return-from find-rule nil))
 
-
+(defun find-lexeme (lexeme lexemelist)
+  (loop
+     for element in lexemelist
+     when (equal (lexeme-category element) (lexeme-category lexeme)) 
+     do (return-from find-lexeme element))
+  (return-from find-lexeme nil))
 
 (defun add-rule (grammar rule)
   (let ((rulelist (gethash (rule-lhs rule) (grammar-rules grammar))))
     (if (null rulelist)
 	(setf (gethash (rule-lhs rule) (grammar-rules grammar)) (list rule))
-	(let ((existing-rule (find rule rulelist :test #'equalp)))
+	(let ((existing-rule (find-rule rule rulelist)))
 	  (if existing-rule
 	      (incf (rule-probability existing-rule))
 	      (setf (gethash (rule-lhs rule) (grammar-rules grammar))
 		    (push rule rulelist)))))))
 
-(defun add-lexeme (grammar tree subtree)
-  (let ((lexeme (make-lexeme))
-	(word (gethash subtree (grammar-lexeme grammar))))
-    (if (null word)
-	(progn
-	  (setf (gethash subtree (grammar-lexeme grammar)) lexeme)
-	  (setf word (gethash subtree (grammar-lexeme grammar)))))
-    (incf (gethash (first tree) (lexeme-category word) 0))))
+
+(defun add-lexeme (grammar tree word)
+  (let ((lexeme (make-lexeme :category (first tree)))
+	(lexemelist (gethash word (grammar-lexeme grammar))))
+    (if (null lexemelist)
+	(setf (gethash word (grammar-lexeme grammar)) (list lexeme))
+	(let ((existing-lexeme (find-lexeme lexeme lexemelist)))
+	  (if existing-lexeme
+	      (incf (lexeme-probability existing-lexeme))
+	      (setf (gethash word (grammar-lexeme grammar))
+		    (push lexeme lexemelist)))))))
 
 (defun parse-tree (grammar tree)
   (let ((rule (make-rule))
@@ -83,13 +92,13 @@
     (loop 
        for subtree in (rest tree)
        when (listp subtree) 
-       do (progn ;is a rule
+       do (progn ; Is a rule
 	    (setf add-rule T)
 	    (push (first subtree) (rule-rhs rule))
-	    (parse-tree grammar subtree))
+	    (parse-tree grammar subtree)) ; Recursive call
        unless (listp subtree)
-       do (add-lexeme grammar tree subtree)) ;is a lexeme
-    (if add-rule ; rule or lexeme
+       do (add-lexeme grammar tree subtree)) ; Is a lexeme
+    (if add-rule ; Execute if a rule was found
 	(if (not-unary rule)
 	    (progn
 	      (setf (rule-lhs rule) (first tree))
