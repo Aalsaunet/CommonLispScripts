@@ -57,8 +57,29 @@
 ;;   (return-from new-rule T))
 
 
+
+(defun add-rule (grammar rule)
+  (let ((rulelist (gethash (rule-lhs rule) (grammar-rules grammar))))
+    (if (null rulelist)
+	(setf (gethash (rule-lhs rule) (grammar-rules grammar)) (list rule))
+	(let ((existing-rule (find rule rulelist :test #'equalp)))
+	  (if existing-rule
+	      (incf (rule-probability existing-rule))
+	      (setf (gethash (rule-lhs rule) (grammar-rules grammar))
+		    (push rule rulelist)))))))
+
+(defun add-lexeme (grammar tree subtree)
+  (let ((lexeme (make-lexeme))
+	(word (gethash subtree (grammar-lexeme grammar))))
+    (if (null word)
+	(progn
+	  (setf (gethash subtree (grammar-lexeme grammar)) lexeme)
+	  (setf word (gethash subtree (grammar-lexeme grammar)))))
+    (incf (gethash (first tree) (lexeme-category word) 0))))
+
 (defun parse-tree (grammar tree)
-  (let ((rule (make-rule)) lexeme (add-rule nil)) 
+  (let ((rule (make-rule))
+	(add-rule nil)) 
     (loop 
        for subtree in (rest tree)
        when (listp subtree) 
@@ -67,23 +88,14 @@
 	    (push (first subtree) (rule-rhs rule))
 	    (parse-tree grammar subtree))
        unless (listp subtree)
-       do (progn ;is a lexeme'
-	    (setf lexeme (make-lexeme))
-       	    (let ((word (gethash subtree (grammar-lexeme grammar))))
-	      (if (null word)
-		  (progn
-		    (setf (gethash subtree (grammar-lexeme grammar)) lexeme)
-		    (setf word (gethash subtree (grammar-lexeme grammar)))))
-	      (incf (gethash (first tree) (lexeme-category word) 0)))))
+       do (add-lexeme grammar tree subtree)) ;is a lexeme
     (if add-rule ; rule or lexeme
 	(if (not-unary rule)
 	    (progn
 	      (setf (rule-lhs rule) (first tree))
 	      (setf (rule-rhs rule) (reverse (rule-rhs rule)))
-	      (let ((rulehash (gethash (first (rule-rhs rule)) (grammar-rules grammar))))
-		(if (null rulehash)
-		    (setf (gethash (first (rule-rhs rule)) (grammar-rules grammar)) rule)
-		    (incf (rule-probability rulehash)))))))))
+	      (add-rule grammar rule))))))
+		    
 
 (defun read-grammar (file)
   ;; this function reads in a treebank file, records the rules and lexemes seen
