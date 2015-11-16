@@ -3,17 +3,10 @@
 (in-package :common-lisp-user)
 
 (defstruct grammar
-  ;;
-  ;; _fix_me_
-  ;; fill in the rest of what is needed: a place to store rules and lexemes at
-  ;; least, possibly also indices to make finding rules or lexemes easier
-  ;;
   (rules (make-hash-table :test #'equal)) ; Key = first RHS, value = list of rule-structs
   (lexemes (make-hash-table :test #'equal)) ; Key = word, value = list of lexeme-structs
   (categories (make-hash-table :test #'equal)) ; Key = category, value = count
   (start 'start))
-
-
 
 (defstruct rule
   lhs rhs (probability 1)) 
@@ -28,20 +21,21 @@
 ;;
 (defparameter *rule-frequency-threshold* 0)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;; TASK 2B ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defun rules-starting-in (category grammar)
-  ;;
-  ;; _fix_me_
-  ;; return a list containing all grammar rules with `category' as the first
-  ;; thing on the right hand side (i.e. the first category after the arrow)
-  ;;
-  )
+  (let (resultlist)
+    (loop
+     for rulelist being the hash-value in (grammar-rules grammar)
+     do (loop for rule in rulelist
+	   when (equal (first (rule-rhs rule)) category)
+	   do (push rule resultlist)))
+  (return-from rules-starting-in resultlist)))
 
 (defun get-lexemes (word grammar)
-  ;;
-  ;; _fix_me_
-  ;; return a list of lexemes (from the global grammar) for the given word
-  ;;
-  )
+  (gethash word (grammar-lexemes grammar)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;; TASK 2A ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -143,21 +137,6 @@
     (return-from read-grammar grammar)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;; TASK 2B ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defun rules-starting-in (category grammar)
-  (let (resultlist)
-    (loop
-     for rulelist being the hash-value in (grammar-rules grammar)
-     do (loop for rule in rulelist
-	   when (equal (first (rule-rhs rule)) category)
-	   do (push rule resultlist)))
-  (return-from rules-starting-in resultlist)))
-
-(defun get-lexemes (word grammar)
-  (gethash word (grammar-lexemes grammar)))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Method for printing out hash keys and values

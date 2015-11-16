@@ -4,12 +4,12 @@ Task 1
 
 The syntactic rules are (rules|tag count|rule count| conditional probabilities):
 |     Rules      | T | R | P(R|C)|
-|S  -> NP VP     | 2 | 2 |  1    |
-|NP -> NNP       | 6 | 4 | 2/3   |
-|NP -> DT NN     | 6 | 2 | 1/3   |
-|VP -> VBD NP PP | 2 | 1 | 1/2   |
-|VP -> VBD NP NP | 2 | 1 | 1/2   |
-|PP -> P NP      | 1 | 1 |  1    |
+|S  -> NP VP     | 2 | 2 |   1   |
+|NP -> NNP       | 6 | 4 |  2/3  |
+|NP -> DT NN     | 6 | 2 |  1/3  |
+|VP -> VBD NP PP | 2 | 1 |  1/2  |
+|VP -> VBD NP NP | 2 | 1 |  1/2  |
+|PP -> P NP      | 1 | 1 |   1   |
 
 The lexical rules are (rules|tag count|rule count| conditional probabilities):
 |     Rules      | T | R | P(R|C)|
@@ -19,3 +19,56 @@ The lexical rules are (rules|tag count|rule count| conditional probabilities):
 |NN  -> ring     | 2 | 2 |   1   |
 |P   -> to       | 1 | 1 |   1   |
 |VBD -> gave     | 2 | 2 |   1   |
+
+Task 3A
+
+When an edge is created it is stored in the agenda where it is later retrieved and
+added to the chart. A new edge gets added to the agenda from two places in the parse-function.
+
+I. Initialization 
+In the initialization step of the parse-function an edge is created for each
+word and category combination of the input sequence. If e.g. the word "flies" appear in the
+input sequence, and we use the toy.mrg-file as our grammar, two edges is created from
+this word: One representing the word as an plural noun and one representing the the word as a
+present verb.
+
+When an edge is a created for a word-category pair at this point in the function, it is given
+the following properties:
+
+from i      = Start position of the edge where i is the position of the word
+     	      in the input string 
+to i+1      = End postion of the edge. Since we are creating edges for individual words at this
+       	      point the vertix/substring length is 1, thus end = start + 1
+category    = the category of the lexeme struct that was retrieved when calling
+	      (get-lexeme word grammar)
+daughters   = A list of lexical edges that is passive from the start.
+probability = The probability of the lexeme struct that was retrieved when calling
+	      (get-lexeme word grammar)
+
+In order for this to happen one condition must be met: The word must appear in the
+training data. If no lexeme(s) is returned when calling the get-lexemes with the word
+and the grammar struct (that stores the training data), the parse function returns/aborts
+and returns nil.
+
+II. Main Parser Loop
+In the main loop of the parse-function an edge is created if there are no equivalent
+edges in the chart yet. If this occurres the function adds the edge, applies the fundamental
+rule and predicts new edges which is also added to the agenda.
+
+When an edge is created at this point in the function, it is given the following properties:
+from        = The same from-value as the host edge.
+to          = The same to-value as the host edge.
+category    = The non-terminal on the left hand side of the rule that is derived from
+	      calling the function rules-starting-in with the host edge's
+	      category and the current grammar.
+daughters   = A list, initially containing the host edge.
+unanalyzed  = The non-terminal(s), except the first, on the right hand side of the
+	      rule that is derived from calling the function rules-starting-in
+	      with the host edge's category and the current grammar
+probability = The probability of the rule that is derived from
+	      calling the function rules-starting-in with the host edge's
+	      category and the current grammar.
+
+As stated above these events are triggered if there are no equivalent edges in the chart.
+If there are equivalent edges, these extra "prediciton-edges" is not created.
+
