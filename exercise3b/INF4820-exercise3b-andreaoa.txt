@@ -72,3 +72,15 @@ probability = The probability of the rule that is derived from
 As stated above these events are triggered if there are no equivalent edges in the chart.
 If there are equivalent edges, these extra "prediciton-edges" is not created.
 
+
+TASK 4A
+
+The viterbi function's task in this context is to find the most probable parse tree in
+our parse forest (alternate trees) and return it.
+
+In our implementation the function starts out by checking if the edge, given as a argument to
+the function, has values stored in its cache. If it doesn't, and the edge has one or more
+daughters, the function goes into a two-level loop, both with recurssive calls.
+
+In the first loop, the probability of the edge is set to itself + the result of each iteration on the edge's daugters in the second level loop. The second level loop is responsible for
+iterating through the daughters of the current edge and sum their probabilities by.
