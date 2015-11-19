@@ -22,6 +22,8 @@ The lexical rules are (rules|tag count|rule count| conditional probabilities):
 
 Task 3A
 
+TODO: Correct this and include that edges also gets added through the fundamental rule.
+
 When an edge is created it is stored in the agenda where it is later retrieved and
 added to the chart. A new edge gets added to the agenda from two places in the parse-function.
 
@@ -111,4 +113,31 @@ edge, which is now the most probable parse tree, is returned.
 
 TASK 4B
 
+Conceptually both our Hidden Markov Model implementation and our Chart Parser implementation
+uses viterbi the same way: To continously store calcultations and use these instead of doing
+the same calculations several times (dynamic programming), and to keep a record of
+backpointers to traverse our model and finding the the most probable path or alternative.
+Even though both our programs does this the implementations are different in many ways.
+In our implementations of the HMM we used two trellises that was very similar to the
+conceptual two dimensional matrices: One that stored the (forward) path probability
+(i.e the probability from going from one state to another) and one that stored the
+backpointers, which pointed out which cell on the previous row that had the
+maximum probability for resulting in the current one (which enable us to find the highest
+probability path).
 
+In our chart there are no such trellises, this information is instead saved within the
+edge structures themself. Previously calculated information, which in HMM's case was stored
+in the (forward) path probability trellis, is in the Chart Parser's case stored within
+the relevant edge's cache-variable. Previously calculated most probable edges are thus
+stored in this cache-slot. Backpointer information, which in HMM's case was stored in
+the backpointer trellis, is stored in the daugters slot of the edge. As
+our parser takes a bottom-up approach, and thus finds the lowest elements in the trees
+first, and builds the trees "upwards" the daughters points to the edges "below" the
+current edge and is thus also a backpointer of sorts.
+
+The columns that stored states in the HMM are in this implementation replaced by list of
+alternate edges that is kept in each of the edges. As our HMM implementation did for all
+states, this implementation does through the edge struct: It compares the previously
+computed max probability of each transition (from one edge to another) and updates the max
+when appriate, in the same way our HMM did with state transitions.
+ 
