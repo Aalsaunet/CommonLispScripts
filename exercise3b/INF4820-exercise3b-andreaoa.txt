@@ -232,3 +232,17 @@ With a maxlength of 10 words 270 sentences were parsed.
 With a maxlength of 9 words total run time was 69.7 seconds.
 With a maxlength of 10 words total run time was 124.4 seconds.
 
+TASK 5C
+
+A major factor that can affect parsing time is the length of the sentences being analyzed,
+and the number of different possible interpretations (structural ambiguities) of each
+of the substrings of that sentence. With a naive exhaustive search this grows
+exponentially with the length of the sentence.
+
+With dynamic programming algorithms, such as the viterbi algorithm, we can partially
+circumvent this problem by storing intermediate calculations and using them instead of
+recalculating, which can makes our parser use polynominally more time, instead of
+exponentially more time (which is far more favorable).
+
+We could thus minimize the time used during training by using smaller trees with a smaller
+sentence length.
