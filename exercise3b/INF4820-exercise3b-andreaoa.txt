@@ -75,12 +75,40 @@ If there are equivalent edges, these extra "prediciton-edges" is not created.
 
 TASK 4A
 
-The viterbi function's task in this context is to find the most probable parse tree in
-our parse forest (alternate trees) and return it.
+The viterbi function's task is to find the most probable parse tree in
+our parse forest (alternate trees) and return it. The packed forrest is here represented as
+a single edge, which can contained multiple packed alternatives. 
 
 In our implementation the function starts out by checking if the edge, given as a argument to
-the function, has values stored in its cache. If it doesn't, and the edge has one or more
-daughters, the function goes into a two-level loop, both with recurssive calls.
+the function, has values stored in its cache. The catch is a variable in each of the edge
+objects that stores results to avoid recalculations (dynamic programming).
+If the edge variable is empty (nil) it means that the calculations have yet to be done,
+and the function continues. If the cache contains values the rest of the statements in the
+function is skipped.
 
-In the first loop, the probability of the edge is set to itself + the result of each iteration on the edge's daugters in the second level loop. The second level loop is responsible for
-iterating through the daughters of the current edge and sum their probabilities by.
+If edge's cache is empty the function next checks if the edge has daughters (i.e. edge's
+daughter is not nil). If the edge has no daughters the edge-cache is simply set to point to
+the edge itself (to avoid doing this check twice).
+If the edge does have daughters, the function goes into a two-level loop,
+which both contains recursive calls. 
+
+At the start of the first loop, the probability of the edge is set to itself + the result
+of the second level loop. In the second level loop each of the edge's daughters are
+iterated through and for each iteration the loop sums the result of calling
+"(viterbi daughter)" on each of the egde's daughters (recursive calls). Once the second
+level loop has finished the edge's probability is thus the sum of its own probability and all
+its daughters probabilites.
+
+The first level loop continues by iterating through all the edge's alternates, which is
+other complete trees in the parse forrest, also represented as edges. For each of these
+alternates the viterbi-function is called with the alternate edge (recursive calls) and their
+probabilities is calculated in the same manner as above. For each of these resulting
+probabilities, the loops checks if any of these are higher than the original edge's
+probability. If this is the case the edge-probability is set to that probability and the
+edge's daughters are replaced with the daughters of the alternate, effectivly replacing
+the parse tree with the more probable one (the alternate). When the loops have finished the
+edge, which is now the most probable parse tree, is returned.
+
+TASK 4B
+
+
