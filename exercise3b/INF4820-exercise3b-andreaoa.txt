@@ -139,5 +139,96 @@ The columns that stored states in the HMM are in this implementation replaced by
 alternate edges that is kept in each of the edges. As our HMM implementation did for all
 states, this implementation does through the edge struct: It compares the previously
 computed max probability of each transition (from one edge to another) and updates the max
-when appriate, in the same way our HMM did with state transitions.
- 
+when appropriate, in the same way our HMM did with state transitions.
+
+TASK 5A
+
+The intuition of the ParsEval Matric is to measure how much the constituents in the
+hypothesis parse trees (i.e the ones our parser produces) look like the constituents
+in a hand-labeled, gold-reference parse.
+This evalution method then assumes that we have human-labeled, gold-reference parse tree for
+each sentence in the test set, which is our case comes from the file "test.mrg".
+
+A given constituent in a hypothesis parse is thus labeled "correct" if there is a
+constituent in the reference parse (i.e the gold standard) with the same starting point,
+the same ending point and the same non-terminal symbol.
+
+We test this by setting the variable wsj to be a grammar struct by using
+"(defparameter wsj (read-grammar "wsj.mrg"))"
+
+When running the evaluator without using the viterbi algoritm (baseline case) with 
+"(pcfg-evaluate "test.mrg" wsj :baseline t)" the parse evaluatior outputs the following:
+-----------------------------------------------------------------------------------------
+1. [8] |No , it was n't Black Monday .| (0.80s) P=0.27 R=0.62
+2. [6] |The finger-pointing has already begun .| (0.23s) P=0.23 R=0.55
+[......]
+269. [6] |Federal Home Loan Mortgage Corp. --| (0.22s) P=0.28 R=0.71
+270. [10] |The collateral is being sold by a thrift institution .| (1.54s) P=0.24 R=0.59
+== 270 inputs; 0.81% coverage; P=0.29 R=0.50 F1=0.37
+0.36666268
+-----------------------------------------------------------------------------------------
+
+When running the evaluator with the viterbi algoritm (i.e. the command 
+"(pcfg-evaluate "test.mrg" wsj)") the parse evaluatior outputs the following:
+-----------------------------------------------------------------------------------------
+1. [8] |No , it was n't Black Monday .| (0.66s) P=0.86 R=0.92
+2. [6] |The finger-pointing has already begun .| (0.22s) P=0.80 R=0.73
+[......]
+269. [6] |Federal Home Loan Mortgage Corp. --| (0.20s) P=1.00 R=1.00
+270. [10] |The collateral is being sold by a thrift institution .| (1.25s) P=1.00 R=1.00
+== 270 inputs; 0.81% coverage; P=0.89 R=0.73 F1=0.80
+0.80236727
+-----------------------------------------------------------------------------------------
+
+If we look at these output, we can see that the ParsEval gives us the following information:
+- Input: The number of trees/sentences that were inputed and evaluated
+- Coverage: The percentage of our hypothesis trees that were measured again the gold standard
+- Recall (R): The number of hypothesis constituents that were correct compared to the
+  	      number of corrent constituents in the gold standard parse.
+- Precision (P): The number of hypothesis constituents that were correct compared to the
+  	    	 total number of hypothesis constituents.
+- F1: Measure that included both recall and precision (equally balanced in F1) with the
+      formula F1 = 2PR/(P + R).
+
+As we can see, the viterbi algorithms increases the parser accuracy significantly with
+precision going from 29% to 89% (60% increase), recall going from 50% to 73% (23% increase)
+and F1 going from 37% to 80% (43% increase).
+
+
+TASK 5B
+When running with maxlength = 9:
+-----------------------------------------------------------------------------------------
+(time (pcfg-evaluate "test.mrg" wsj :maxlength 9))
+
+== 225 inputs; 0.80% coverage; P=0.89 R=0.73 F1=0.80
+Evaluation took:
+  78.665 seconds of real time
+  69.736000 seconds of total run time (64.876000 user, 4.860000 system)
+  [ Run times consist of 14.684 seconds GC time, and 55.052 seconds non-GC time. ]
+  88.65% CPU
+  188,367,004,371 processor cycles
+  5,950,746,784 bytes consed
+-----------------------------------------------------------------------------------------
+
+When running with maxlength = 10
+-----------------------------------------------------------------------------------------
+(time (pcfg-evaluate "test.mrg" wsj :maxlength 10))
+
+== 270 inputs; 0.81% coverage; P=0.89 R=0.73 F1=0.80
+Evaluation took:
+  141.084 seconds of real time
+  124.372000 seconds of total run time (116.180000 user, 8.192000 system)
+  [ Run times consist of 28.320 seconds GC time, and 96.052 seconds non-GC time. ]
+  88.15% CPU
+  337,831,872,668 processor cycles
+  10,042,719,840 bytes consed
+-----------------------------------------------------------------------------------------
+
+Results:
+
+With a maxlength of 9 words 225 sentences were parsed.
+With a maxlength of 10 words 270 sentences were parsed.
+
+With a maxlength of 9 words total run time was 69.7 seconds.
+With a maxlength of 10 words total run time was 124.4 seconds.
+
