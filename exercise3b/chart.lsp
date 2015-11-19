@@ -23,6 +23,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; TASK 2B ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Returns the rules starting in the provided category
 (defun rules-starting-in (category grammar)
   (let (resultlist)
     (loop
@@ -32,6 +33,7 @@
 	   do (push rule resultlist)))
   (return-from rules-starting-in resultlist)))
 
+;; Returns the lexemes of the provided word
 (defun get-lexemes (word grammar)
   (gethash word (grammar-lexemes grammar)))
 
@@ -45,6 +47,9 @@
       (return-from not-unary nil)
       (return-from not-unary T)))
 
+;; Seaches a list of rules for a rule equivalent to the rule
+;; given as an argument. If the functions finds a match it returns it.
+;; Nil is returned otherwise.
 (defun find-rule (rule rulelist)
   (loop
      for element in rulelist
@@ -53,6 +58,9 @@
      do (return-from find-rule element))
   (return-from find-rule nil))
 
+;; Seaches a list of lexemes for a lexeme equivalent to the lexeme
+;; given as an argument. If the functions finds a match it returns it.
+;; Nil is returned otherwise.
 (defun find-lexeme (lexeme lexemelist)
   (loop
      for element in lexemelist
@@ -60,6 +68,7 @@
      do (return-from find-lexeme element))
   (return-from find-lexeme nil))
 
+;; Adds the rule to the grammar
 (defun add-rule (grammar rule)
   (let ((rulelist (gethash (rule-lhs rule) (grammar-rules grammar))))
     (incf (gethash (rule-lhs rule) (grammar-categories grammar) 0))
@@ -71,6 +80,7 @@
 	      (setf (gethash (rule-lhs rule) (grammar-rules grammar))
 		    (push rule rulelist)))))))
 
+;; Adds the lexeme to the grammar
 (defun add-lexeme (grammar tree word)
   (let ((lexeme (make-lexeme :category (first tree)))
 	(lexemelist (gethash word (grammar-lexemes grammar))))
@@ -83,6 +93,7 @@
 	      (setf (gethash word (grammar-lexemes grammar))
 		    (push lexeme lexemelist)))))))
 
+;; Main function for parsing the trees of our grammar
 (defun parse-tree (grammar tree)
   (let ((rule (make-rule))
 	(add-rule nil)) 
@@ -102,6 +113,8 @@
 	      (setf (rule-rhs rule) (reverse (rule-rhs rule)))
 	      (add-rule grammar rule))))))
 
+;; Destructivly changes the value in the probability slots of the rules
+;; from being the count to being the probability of that rule
 (defun calculate-rule-probabilities (grammar)
   (loop
      for rulelist being the hash-value in (grammar-rules grammar)
@@ -111,7 +124,8 @@
 			    (gethash (rule-lhs rule)
 				     (grammar-categories grammar))))))))
        
-
+;; Destructivly changes the value in the probability slots of the lexeme
+;; from being the count to being the probability of that lexeme
 (defun calculate-lexeme-probabilities (grammar)
   (loop
      for lexemelist being the hash-value in (grammar-lexemes grammar)

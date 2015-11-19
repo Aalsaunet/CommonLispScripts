@@ -20,14 +20,16 @@ The lexical rules are (rules|tag count|rule count| conditional probabilities):
 |P   -> to       | 1 | 1 |   1   |
 |VBD -> gave     | 2 | 2 |   1   |
 
+Task 2A and 2B
+See chart-andreaoa.lsp
+
 Task 3A
 
-TODO: Correct this and include that edges also gets added through the fundamental rule.
-
 When an edge is created it is stored in the agenda where it is later retrieved and
-added to the chart. A new edge gets added to the agenda from two places in the parse-function.
+added to the chart. A new edge gets direct added to the agenda from two places
+in the parse-function.
 
-I. Initialization 
+I. Initialization
 In the initialization step of the parse-function an edge is created for each
 word and category combination of the input sequence. If e.g. the word "flies" appear in the
 input sequence, and we use the toy.mrg-file as our grammar, two edges is created from
@@ -37,9 +39,9 @@ present verb.
 When an edge is a created for a word-category pair at this point in the function, it is given
 the following properties:
 
-from i      = Start position of the edge where i is the position of the word
-     	      in the input string 
-to i+1      = End postion of the edge. Since we are creating edges for individual words at this
+from i      = Start position of the edge where i is the index before the word (the node)
+     	      in the input string
+to i+1      = End position of the edge. Since we are creating edges for individual words at this
        	      point the vertix/substring length is 1, thus end = start + 1
 category    = the category of the lexeme struct that was retrieved when calling
 	      (get-lexeme word grammar)
@@ -55,7 +57,7 @@ and returns nil.
 II. Main Parser Loop
 In the main loop of the parse-function an edge is created if there are no equivalent
 edges in the chart yet. If this occurres the function adds the edge, applies the fundamental
-rule and predicts new edges which is also added to the agenda.
+rule and predicts new edges, which could also result in new edges getting added to the agenda.
 
 When an edge is created at this point in the function, it is given the following properties:
 from        = The same from-value as the host edge.
@@ -74,12 +76,14 @@ probability = The probability of the rule that is derived from
 As stated above these events are triggered if there are no equivalent edges in the chart.
 If there are equivalent edges, these extra "prediciton-edges" is not created.
 
+Task 3B
+See chart-andreaoa.lsp
 
 TASK 4A
 
 The viterbi function's task is to find the most probable parse tree in
 our parse forest (alternate trees) and return it. The packed forrest is here represented as
-a single edge, which can contained multiple packed alternatives. 
+a single edge, which can contained multiple packed alternatives.
 
 In our implementation the function starts out by checking if the edge, given as a argument to
 the function, has values stored in its cache. The catch is a variable in each of the edge
@@ -92,7 +96,7 @@ If edge's cache is empty the function next checks if the edge has daughters (i.e
 daughter is not nil). If the edge has no daughters the edge-cache is simply set to point to
 the edge itself (to avoid doing this check twice).
 If the edge does have daughters, the function goes into a two-level loop,
-which both contains recursive calls. 
+which both contains recursive calls.
 
 At the start of the first loop, the probability of the edge is set to itself + the result
 of the second level loop. In the second level loop each of the edge's daughters are
@@ -156,7 +160,7 @@ the same ending point and the same non-terminal symbol.
 We test this by setting the variable wsj to be a grammar struct by using
 "(defparameter wsj (read-grammar "wsj.mrg"))"
 
-When running the evaluator without using the viterbi algoritm (baseline case) with 
+When running the evaluator without using the viterbi algoritm (baseline case) with
 "(pcfg-evaluate "test.mrg" wsj :baseline t)" the parse evaluatior outputs the following:
 -----------------------------------------------------------------------------------------
 1. [8] |No , it was n't Black Monday .| (0.80s) P=0.27 R=0.62
@@ -168,7 +172,7 @@ When running the evaluator without using the viterbi algoritm (baseline case) wi
 0.36666268
 -----------------------------------------------------------------------------------------
 
-When running the evaluator with the viterbi algoritm (i.e. the command 
+When running the evaluator with the viterbi algoritm (i.e. the command
 "(pcfg-evaluate "test.mrg" wsj)") the parse evaluatior outputs the following:
 -----------------------------------------------------------------------------------------
 1. [8] |No , it was n't Black Monday .| (0.66s) P=0.86 R=0.92
