@@ -328,13 +328,19 @@
         return edge)))
 
 (defun fundamental-rule (active passive agenda)
-  ;;
-  ;; _fix_me_
   ;; the fundamental rule of chart parsing: given one active and one passive
   ;; edge (known to be adjacent already), check for compatibility of the two
   ;; edges and add a new edge to the agenda when successful.
-  ;;
-  )
+  (if (equal (first (edge-unanalyzed active)) (edge-category passive))
+      (agenda-push (make-edge
+		    :from (edge-from active)
+		    :to (edge-to passive)
+		    :category (edge-category active)
+		    :daughters (append (edge-daughters active) (list passive))
+		    :unanalyzed (rest (edge-unanalyzed active))
+		    :probability (edge-probability active))
+		   agenda)
+  ))
 
 (defun viterbi (edge)
   ;;
